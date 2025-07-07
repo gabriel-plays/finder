@@ -262,10 +262,6 @@ export default function Index() {
               : `${(route.distance / 1000).toFixed(1)}km`;
           const routeDuration = Math.round(route.duration / 60);
 
-          toast.success(
-            `Route found: ${routeDistance} (${routeDuration} min drive)`,
-          );
-
           // Store route for map to display
           setRouteData({
             coordinates: route.coordinates,
