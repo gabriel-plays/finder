@@ -399,7 +399,7 @@ export default function Map({
 
       markersRef.current!.addLayer(marker);
     });
-  }, [places]);
+  }, [places, selectedPlaceId]);
 
   // Handle route data changes
   useEffect(() => {
