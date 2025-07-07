@@ -396,6 +396,46 @@ export default function Map({
     });
   }, [places]);
 
+  // Handle route data changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing route
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+
+    // Add new route if provided
+    if (routeData && routeData.coordinates.length > 0) {
+      // Add new route with improved styling
+      routeLayerRef.current = L.polyline(routeData.coordinates, {
+        color: "#3b82f6",
+        weight: 5,
+        opacity: 0.9,
+        dashArray: "12, 8",
+        lineCap: "round",
+        lineJoin: "round",
+      }).addTo(mapInstanceRef.current);
+
+      // Add subtle shadow effect
+      const shadowRoute = L.polyline(routeData.coordinates, {
+        color: "#1e40af",
+        weight: 7,
+        opacity: 0.3,
+        lineCap: "round",
+        lineJoin: "round",
+      }).addTo(mapInstanceRef.current);
+
+      // Move shadow behind main route
+      shadowRoute.bringToBack();
+
+      // Fit map to show route
+      const bounds = L.latLngBounds(routeData.coordinates);
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [routeData]);
+
   // Handle geolocation
   const handleMyLocation = () => {
     if (!navigator.geolocation) {
