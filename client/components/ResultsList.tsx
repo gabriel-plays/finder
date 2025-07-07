@@ -165,7 +165,7 @@ export default function ResultsList({
                   </div>
                 </CollapsibleTrigger>
 
-                <CollapsibleContent className="mt-2">
+                <CollapsibleContent className="mt-2 max-h-96 overflow-y-auto">
                   <div className="space-y-2 ml-5">
                     {categoryPlaces.map((place) => (
                       <Card
