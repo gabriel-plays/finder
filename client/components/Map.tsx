@@ -22,6 +22,8 @@ interface MapProps {
   searchRadius: number;
   onMapClick: (lat: number, lon: number) => void;
   onLocationFound?: (lat: number, lon: number) => void;
+  onPlaceClick?: (place: Place) => void;
+  selectedPlaceId?: string;
 }
 
 // Create custom icons for each category
@@ -63,6 +65,8 @@ export default function Map({
   searchRadius,
   onMapClick,
   onLocationFound,
+  onPlaceClick,
+  selectedPlaceId,
 }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -217,20 +221,49 @@ export default function Map({
 
     // Add markers for each place
     places.forEach((place) => {
+      // Create icon with selection styling
+      const isSelected = selectedPlaceId === place.id;
+      const config = PLACE_CATEGORIES[place.category];
+
+      const markerIcon = L.divIcon({
+        className: "custom-div-icon",
+        html: `
+          <div style="
+            background-color: ${config.color};
+            width: ${isSelected ? "32px" : "24px"};
+            height: ${isSelected ? "32px" : "24px"};
+            border-radius: 50%;
+            border: ${isSelected ? "3px solid #60a5fa" : "2px solid white"};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${isSelected ? "16px" : "12px"};
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transform: ${isSelected ? "scale(1.1)" : "scale(1)"};
+            transition: all 0.2s ease;
+          ">
+            ${config.icon}
+          </div>
+        `,
+        iconSize: [isSelected ? 32 : 24, isSelected ? 32 : 24],
+        iconAnchor: [isSelected ? 16 : 12, isSelected ? 16 : 12],
+      });
+
       const marker = L.marker([place.lat, place.lon], {
-        icon: icons[place.category],
+        icon: markerIcon,
       });
 
       // Create popup content
       const popupContent = `
         <div class="p-3 min-w-64 bg-gray-900 text-white rounded-lg">
           <div class="flex items-center gap-2 mb-2">
-            <span class="text-lg">${PLACE_CATEGORIES[place.category].icon}</span>
+            <span class="text-lg">${config.icon}</span>
             <h3 class="font-semibold text-sm">${place.name}</h3>
           </div>
           <div class="space-y-1 text-xs text-gray-300">
             <p><span class="text-gray-400">Category:</span> ${PLACE_CATEGORIES[place.category].label}</p>
-            ${place.distance ? `<p><span class="text-gray-400">Distance:</span> ${place.distance}m</p>` : ""}
+            ${place.distance ? `<p><span class="text-gray-400">Distance:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"}</p>` : ""}
             ${place.details.operator ? `<p><span class="text-gray-400">Operator:</span> ${place.details.operator}</p>` : ""}
             ${place.details.emergency ? `<p class="text-red-400">⚠️ Emergency services available</p>` : ""}
           </div>
@@ -240,6 +273,11 @@ export default function Map({
       marker.bindPopup(popupContent, {
         maxWidth: 300,
         className: "custom-popup",
+      });
+
+      // Add click handler for place selection
+      marker.on("click", () => {
+        onPlaceClick?.(place);
       });
 
       markersRef.current!.addLayer(marker);

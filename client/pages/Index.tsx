@@ -314,6 +314,8 @@ export default function Index() {
               searchRadius={searchRadius}
               onMapClick={handleMapClick}
               onLocationFound={handleLocationFound}
+              onPlaceClick={handlePlaceClick}
+              selectedPlaceId={selectedPlaceId}
             />
 
             <LoadingOverlay isVisible={isLoading} />
