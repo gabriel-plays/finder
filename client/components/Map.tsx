@@ -48,16 +48,14 @@ async function calculateRoute(start: [number, number], end: [number, number]) {
     if (data.routes && data.routes.length > 0) {
       const route = data.routes[0];
       return {
-        coordinates: route.geometry.coordinates.map(
-          (coord: [number, number]) => [coord[1], coord[0]],
-        ), // Flip lat/lon
+        coordinates: route.geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]]), // Flip lat/lon
         distance: route.distance, // Distance in meters
-        duration: route.duration, // Duration in seconds
+        duration: route.duration // Duration in seconds
       };
     }
     return null;
   } catch (error) {
-    console.error("Error calculating route:", error);
+    console.error('Error calculating route:', error);
     return null;
   }
 }
@@ -94,7 +92,9 @@ const icons = {
   education: createCustomIcon("education"),
 };
 
-export default function Map({
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+
+const Map = forwardRef<MapRef, MapProps>(function Map({
   center,
   zoom,
   places,
@@ -103,7 +103,7 @@ export default function Map({
   onLocationFound,
   onPlaceClick,
   selectedPlaceId,
-}: MapProps) {
+}, ref) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
@@ -312,43 +312,27 @@ export default function Map({
         const { details, category } = place;
 
         if (category === "transport") {
-          if (details.highway === "bus_stop")
-            return { type: "Bus Stop", icon: "🚏" };
-          if (details.amenity === "bus_station")
-            return { type: "Bus Station", icon: "🚌" };
-          if (details.public_transport === "platform")
-            return { type: "Platform", icon: "🚉" };
-          if (details.public_transport === "stop_position")
-            return { type: "Stop Position", icon: "📍" };
-          if (
-            details.amenity === "railway" ||
-            place.name.toLowerCase().includes("station")
-          )
-            return { type: "Railway Station", icon: "🚂" };
+          if (details.highway === "bus_stop") return { type: "Bus Stop", icon: "🚏" };
+          if (details.amenity === "bus_station") return { type: "Bus Station", icon: "🚌" };
+          if (details.public_transport === "platform") return { type: "Platform", icon: "🚉" };
+          if (details.public_transport === "stop_position") return { type: "Stop Position", icon: "📍" };
+          if (details.amenity === "railway" || place.name.toLowerCase().includes("station")) return { type: "Railway Station", icon: "🚂" };
           return { type: "Transport Hub", icon: "🚇" };
         }
 
         if (category === "healthcare") {
-          if (details.amenity === "hospital")
-            return { type: "Hospital", icon: "🏥" };
-          if (details.amenity === "clinic")
-            return { type: "Clinic", icon: "🩺" };
-          if (details.amenity === "pharmacy")
-            return { type: "Pharmacy", icon: "💊" };
-          if (details.amenity === "doctors")
-            return { type: "Doctor's Office", icon: "👩‍⚕️" };
+          if (details.amenity === "hospital") return { type: "Hospital", icon: "🏥" };
+          if (details.amenity === "clinic") return { type: "Clinic", icon: "🩺" };
+          if (details.amenity === "pharmacy") return { type: "Pharmacy", icon: "💊" };
+          if (details.amenity === "doctors") return { type: "Doctor's Office", icon: "👩‍⚕️" };
           return { type: "Healthcare", icon: "⚕️" };
         }
 
         if (category === "education") {
-          if (details.amenity === "university")
-            return { type: "University", icon: "🎓" };
-          if (details.amenity === "college")
-            return { type: "College", icon: "🏛️" };
-          if (details.amenity === "school")
-            return { type: "School", icon: "🏫" };
-          if (details.amenity === "kindergarten")
-            return { type: "Kindergarten", icon: "🧒" };
+          if (details.amenity === "university") return { type: "University", icon: "🎓" };
+          if (details.amenity === "college") return { type: "College", icon: "🏛️" };
+          if (details.amenity === "school") return { type: "School", icon: "🏫" };
+          if (details.amenity === "kindergarten") return { type: "Kindergarten", icon: "🧒" };
           return { type: "Educational", icon: "📚" };
         }
 
