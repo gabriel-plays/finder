@@ -4,6 +4,7 @@ import Map from "@/components/Map";
 import Legend from "@/components/Legend";
 import RadiusControl from "@/components/RadiusControl";
 import LoadingOverlay from "@/components/LoadingOverlay";
+import ResultsList from "@/components/ResultsList";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function Index() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string>();
 
   // Calculate place counts by category
   const placeCounts = places.reduce(
@@ -97,6 +99,13 @@ export default function Index() {
       fetchPlaces(mapCenter[0], mapCenter[1], searchRadius);
     }
   }, [fetchPlaces, mapCenter, searchRadius, hasSearched]);
+
+  // Handle place selection from results list
+  const handlePlaceClick = useCallback((place: Place) => {
+    setSelectedPlaceId(place.id);
+    setMapCenter([place.lat, place.lon]);
+    setMapZoom(16); // Zoom in when selecting a place
+  }, []);
 
   // Get user location on mount
   useEffect(() => {
@@ -218,7 +227,7 @@ export default function Index() {
             </div>
           </div>
 
-          {/* Desktop Sidebar */}
+          {/* Desktop Left Sidebar - Controls */}
           <div className="hidden lg:flex w-80 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 flex-col">
             {/* Instructions */}
             <div className="p-4 border-b border-gray-800">
@@ -361,6 +370,16 @@ export default function Index() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Desktop Right Sidebar - Results List */}
+          <div className="hidden lg:block">
+            <ResultsList
+              places={places}
+              onPlaceClick={handlePlaceClick}
+              selectedPlaceId={selectedPlaceId}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </div>
