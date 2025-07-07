@@ -285,6 +285,8 @@ export default function Map({
     places.forEach((place) => {
       // Create icon with selection styling
       const isSelected = selectedPlaceId === place.id;
+      const hasSelection = selectedPlaceId !== undefined;
+      const isDimmed = hasSelection && !isSelected;
       const config = PLACE_CATEGORIES[place.category];
 
       const markerIcon = L.divIcon({
@@ -292,24 +294,26 @@ export default function Map({
         html: `
           <div style="
             background-color: ${config.color};
-            width: ${isSelected ? "32px" : "24px"};
-            height: ${isSelected ? "32px" : "24px"};
+            width: ${isSelected ? "36px" : "24px"};
+            height: ${isSelected ? "36px" : "24px"};
             border-radius: 50%;
-            border: ${isSelected ? "3px solid #60a5fa" : "2px solid white"};
+            border: ${isSelected ? "4px solid #60a5fa" : "2px solid white"};
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: ${isSelected ? "16px" : "12px"};
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            font-size: ${isSelected ? "18px" : "12px"};
+            box-shadow: ${isSelected ? "0 4px 12px rgba(96, 165, 250, 0.6)" : "0 2px 6px rgba(0,0,0,0.4)"};
             cursor: pointer;
-            transform: ${isSelected ? "scale(1.1)" : "scale(1)"};
-            transition: all 0.2s ease;
+            transform: ${isSelected ? "scale(1.2)" : "scale(1)"};
+            transition: all 0.3s ease;
+            opacity: ${isDimmed ? "0.4" : "1"};
+            z-index: ${isSelected ? "1000" : "500"};
           ">
             ${config.icon}
           </div>
         `,
-        iconSize: [isSelected ? 32 : 24, isSelected ? 32 : 24],
-        iconAnchor: [isSelected ? 16 : 12, isSelected ? 16 : 12],
+        iconSize: [isSelected ? 36 : 24, isSelected ? 36 : 24],
+        iconAnchor: [isSelected ? 18 : 12, isSelected ? 18 : 12],
       });
 
       const marker = L.marker([place.lat, place.lon], {
@@ -358,7 +362,7 @@ export default function Map({
             return { type: "School", icon: "🏫" };
           if (details.amenity === "kindergarten")
             return { type: "Kindergarten", icon: "🧒" };
-          return { type: "Educational", icon: "��" };
+          return { type: "Educational", icon: "📚" };
         }
 
         return { type: "Facility", icon: "📍" };
