@@ -254,16 +254,67 @@ export default function Map({
         icon: markerIcon,
       });
 
+      // Get place type info for popup
+      const getPlaceTypeInfo = (place: Place) => {
+        const { details, category } = place;
+
+        if (category === "transport") {
+          if (details.highway === "bus_stop")
+            return { type: "Bus Stop", icon: "🚏" };
+          if (details.amenity === "bus_station")
+            return { type: "Bus Station", icon: "🚌" };
+          if (details.public_transport === "platform")
+            return { type: "Platform", icon: "🚉" };
+          if (details.public_transport === "stop_position")
+            return { type: "Stop Position", icon: "📍" };
+          if (
+            details.amenity === "railway" ||
+            place.name.toLowerCase().includes("station")
+          )
+            return { type: "Railway Station", icon: "🚂" };
+          return { type: "Transport Hub", icon: "🚇" };
+        }
+
+        if (category === "healthcare") {
+          if (details.amenity === "hospital")
+            return { type: "Hospital", icon: "🏥" };
+          if (details.amenity === "clinic")
+            return { type: "Clinic", icon: "🩺" };
+          if (details.amenity === "pharmacy")
+            return { type: "Pharmacy", icon: "💊" };
+          if (details.amenity === "doctors")
+            return { type: "Doctor's Office", icon: "👩‍⚕️" };
+          return { type: "Healthcare", icon: "⚕️" };
+        }
+
+        if (category === "education") {
+          if (details.amenity === "university")
+            return { type: "University", icon: "🎓" };
+          if (details.amenity === "college")
+            return { type: "College", icon: "🏛️" };
+          if (details.amenity === "school")
+            return { type: "School", icon: "🏫" };
+          if (details.amenity === "kindergarten")
+            return { type: "Kindergarten", icon: "🧒" };
+          return { type: "Educational", icon: "📚" };
+        }
+
+        return { type: "Facility", icon: "📍" };
+      };
+
+      const typeInfo = getPlaceTypeInfo(place);
+
       // Create popup content
       const popupContent = `
         <div class="p-3 min-w-64 bg-gray-900 text-white rounded-lg">
           <div class="flex items-center gap-2 mb-2">
-            <span class="text-lg">${config.icon}</span>
+            <span class="text-lg">${typeInfo.icon}</span>
             <h3 class="font-semibold text-sm">${place.name}</h3>
           </div>
           <div class="space-y-1 text-xs text-gray-300">
+            <p><span class="text-gray-400">Type:</span> <span class="text-blue-300 font-medium">${typeInfo.type}</span></p>
             <p><span class="text-gray-400">Category:</span> ${PLACE_CATEGORIES[place.category].label}</p>
-            ${place.distance ? `<p><span class="text-gray-400">Distance:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"}</p>` : ""}
+            ${place.distance ? `<p><span class="text-gray-400">Distance:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"} <span class="text-gray-500">(as the crow flies)</span></p>` : ""}
             ${place.details.operator ? `<p><span class="text-gray-400">Operator:</span> ${place.details.operator}</p>` : ""}
             ${place.details.emergency ? `<p class="text-red-400">⚠️ Emergency services available</p>` : ""}
           </div>
