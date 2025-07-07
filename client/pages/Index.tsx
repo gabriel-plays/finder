@@ -297,7 +297,7 @@ export default function Index() {
           </div>
 
           {/* Map Container */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative h-full">
             <Map
               center={mapCenter}
               zoom={mapZoom}
