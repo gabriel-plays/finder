@@ -212,8 +212,8 @@ export default function Index() {
   // Handle place selection from results list
   const handlePlaceClick = useCallback((place: Place) => {
     setSelectedPlaceId(place.id);
-    setMapCenter([place.lat, place.lon]);
-    setMapZoom(16); // Zoom in when selecting a place
+    // Don't change map center - keep original search location as center
+    // The route will be drawn from search center to selected place
   }, []);
 
   // Get user location on mount
