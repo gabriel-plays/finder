@@ -433,8 +433,8 @@ export default function Map({
                 <div class="space-y-1 text-xs text-gray-300">
                   <p><span class="text-gray-400">Type:</span> <span class="text-blue-300 font-medium">${typeInfo.type}</span></p>
                   <p><span class="text-gray-400">Category:</span> ${PLACE_CATEGORIES[place.category].label}</p>
-                  <p><span class="text-gray-400">Road Distance:</span> <span class="text-green-300 font-medium">${routeDistance}</span> <span class="text-gray-500">(~${routeDuration} min drive)</span></p>
-                  ${place.distance ? `<p><span class="text-gray-400">Straight Line:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"}</p>` : ""}
+                  <p><span class="text-gray-400">🚗 Driving Route:</span> <span class="text-green-300 font-medium">${routeDistance}</span> <span class="text-gray-500">(~${routeDuration} min from search center)</span></p>
+                  ${place.distance ? `<p><span class="text-gray-400">✈️ Straight Line:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"}</p>` : ""}
                   ${place.details.operator ? `<p><span class="text-gray-400">Operator:</span> ${place.details.operator}</p>` : ""}
                   ${place.details.emergency ? `<p class="text-red-400">⚠️ Emergency services available</p>` : ""}
                 </div>
