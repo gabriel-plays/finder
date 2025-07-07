@@ -107,16 +107,43 @@ export default function Index() {
           setMapCenter([latitude, longitude]);
           setMapZoom(14);
           fetchPlaces(latitude, longitude, searchRadius);
+          toast.success("Location found! Showing nearby services...");
         },
         (error) => {
-          console.log("Geolocation error:", error);
-          // Silently fail and use default location
+          console.log("Geolocation error on startup:", error);
+
+          // Provide user feedback based on error type
+          let message = "";
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              message =
+                "Location access denied. Using default location (London). Click anywhere on the map to search other areas.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              message =
+                "Location unavailable. Using default location (London). Click anywhere on the map to search.";
+              break;
+            case error.TIMEOUT:
+              message =
+                "Location request timed out. Using default location (London). You can click the location button or click on the map.";
+              break;
+            default:
+              message =
+                "Using default location (London). Click anywhere on the map or use the location button to search your area.";
+              break;
+          }
+
+          toast.info(message);
         },
         {
           enableHighAccuracy: false,
           timeout: 5000,
           maximumAge: 300000,
         },
+      );
+    } else {
+      toast.info(
+        "Geolocation not supported. Click anywhere on the map to search for services.",
       );
     }
   }, [fetchPlaces, searchRadius]);
