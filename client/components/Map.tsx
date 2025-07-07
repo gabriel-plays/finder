@@ -103,6 +103,7 @@ export default function Map({
   const markersRef = useRef<L.LayerGroup | null>(null);
   const circleRef = useRef<L.Circle | null>(null);
   const centerMarkerRef = useRef<L.Marker | null>(null);
+  const routeLayerRef = useRef<L.Polyline | null>(null);
 
   // Initialize map
   useEffect(() => {
