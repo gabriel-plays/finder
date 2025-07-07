@@ -72,14 +72,26 @@ export default function Map({
 
   // Initialize map
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current) {
+      console.error("Map container ref not found");
+      return;
+    }
 
-    // Create map with dark theme
-    mapInstanceRef.current = L.map(mapRef.current, {
-      center,
-      zoom,
-      zoomControl: false,
-    });
+    console.log("Initializing Leaflet map...");
+
+    try {
+      // Create map with dark theme
+      mapInstanceRef.current = L.map(mapRef.current, {
+        center,
+        zoom,
+        zoomControl: false,
+      });
+
+      console.log("Map instance created successfully");
+    } catch (error) {
+      console.error("Error creating map:", error);
+      return;
+    }
 
     // Add dark theme tile layer
     L.tileLayer(
