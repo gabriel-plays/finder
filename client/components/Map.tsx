@@ -26,6 +26,36 @@ interface MapProps {
   selectedPlaceId?: string;
 }
 
+// Helper function to calculate route using OpenRouteService
+async function calculateRoute(start: [number, number], end: [number, number]) {
+  try {
+    // Using public OSRM demo server (no API key needed)
+    const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.routes && data.routes.length > 0) {
+      const route = data.routes[0];
+      return {
+        coordinates: route.geometry.coordinates.map(
+          (coord: [number, number]) => [coord[1], coord[0]],
+        ), // Flip lat/lon
+        distance: route.distance, // Distance in meters
+        duration: route.duration, // Duration in seconds
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error calculating route:", error);
+    return null;
+  }
+}
+
 // Create custom icons for each category
 const createCustomIcon = (category: keyof typeof PLACE_CATEGORIES) => {
   const config = PLACE_CATEGORIES[category];
