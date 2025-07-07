@@ -377,9 +377,17 @@ export default function Map({
       marker.on("click", async () => {
         onPlaceClick?.(place);
 
-        // Calculate and display route from original search center to selected place
+        // Calculate and display route from ORIGINAL search center to selected place
+        const searchCenter = searchCenterRef.current;
+        console.log(
+          `Calculating route from search center [${searchCenter[0]}, ${searchCenter[1]}] to place [${place.lat}, ${place.lon}]`,
+        );
+
         try {
-          const route = await calculateRoute(center, [place.lat, place.lon]);
+          const route = await calculateRoute(searchCenter, [
+            place.lat,
+            place.lon,
+          ]);
 
           if (route && mapInstanceRef.current) {
             // Remove existing route
@@ -387,13 +395,27 @@ export default function Map({
               routeLayerRef.current.remove();
             }
 
-            // Add new route
+            // Add new route with improved styling
             routeLayerRef.current = L.polyline(route.coordinates, {
               color: "#3b82f6",
-              weight: 4,
-              opacity: 0.8,
-              dashArray: "10, 5",
+              weight: 5,
+              opacity: 0.9,
+              dashArray: "12, 8",
+              lineCap: "round",
+              lineJoin: "round",
             }).addTo(mapInstanceRef.current);
+
+            // Add subtle shadow effect
+            const shadowRoute = L.polyline(route.coordinates, {
+              color: "#1e40af",
+              weight: 7,
+              opacity: 0.3,
+              lineCap: "round",
+              lineJoin: "round",
+            }).addTo(mapInstanceRef.current);
+
+            // Move shadow behind main route
+            shadowRoute.bringToBack();
 
             // Update popup with route information
             const routeDistance =
