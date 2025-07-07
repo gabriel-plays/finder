@@ -31,29 +31,75 @@ export default function Index() {
     {} as Record<string, number>,
   );
 
-  // Fetch places from API
+  // Fetch places from API with retry logic
   const fetchPlaces = useCallback(
-    async (lat: number, lon: number, radius: number) => {
+    async (lat: number, lon: number, radius: number, retryCount = 0) => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `/api/places?lat=${lat}&lon=${lon}&radius=${radius}`,
+        console.log(
+          `Fetching places for lat: ${lat}, lon: ${lon}, radius: ${radius}m`,
         );
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+        const response = await fetch(
+          `/api/places?lat=${lat}&lon=${lon}&radius=${radius}`,
+          {
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+          throw new Error(
+            `API error: ${response.status} ${response.statusText}`,
+          );
         }
 
         const data: PlacesResponse = await response.json();
         setPlaces(data.places);
         setHasSearched(true);
+        setSelectedPlaceId(undefined); // Clear selection on new search
 
         toast.success(
           `Found ${data.places.length} nearby services within ${(radius / 1000).toFixed(1)}km`,
         );
       } catch (error) {
         console.error("Error fetching places:", error);
-        toast.error("Failed to fetch nearby services. Please try again.");
+
+        // Retry logic for network errors
+        if (retryCount < 2 && (error as Error).name !== "AbortError") {
+          console.log(`Retrying... attempt ${retryCount + 1}`);
+          toast.info(`Connection issue, retrying... (${retryCount + 1}/3)`);
+          setTimeout(
+            () => {
+              fetchPlaces(lat, lon, radius, retryCount + 1);
+            },
+            1000 * (retryCount + 1),
+          ); // Exponential backoff
+          return;
+        }
+
+        // Handle different error types
+        let errorMessage = "Failed to fetch nearby services. ";
+        if ((error as Error).name === "AbortError") {
+          errorMessage += "Request timed out. Please try again.";
+        } else if (
+          error instanceof TypeError &&
+          error.message.includes("fetch")
+        ) {
+          errorMessage +=
+            "Network connection issue. Please check your connection and try again.";
+        } else {
+          errorMessage += "Please try again in a moment.";
+        }
+
+        toast.error(errorMessage);
         setPlaces([]);
       } finally {
         setIsLoading(false);
