@@ -393,15 +393,28 @@ export default function Map({
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    // Clear existing route
+    // Clear existing routes completely
     if (routeLayerRef.current) {
       routeLayerRef.current.remove();
       routeLayerRef.current = null;
     }
+    if (shadowRouteRef.current) {
+      shadowRouteRef.current.remove();
+      shadowRouteRef.current = null;
+    }
 
     // Add new route if provided
     if (routeData && routeData.coordinates.length > 0) {
-      // Add new route with improved styling
+      // Add shadow effect first
+      shadowRouteRef.current = L.polyline(routeData.coordinates, {
+        color: "#1e40af",
+        weight: 7,
+        opacity: 0.3,
+        lineCap: "round",
+        lineJoin: "round",
+      }).addTo(mapInstanceRef.current);
+
+      // Add main route on top
       routeLayerRef.current = L.polyline(routeData.coordinates, {
         color: "#3b82f6",
         weight: 5,
@@ -410,18 +423,6 @@ export default function Map({
         lineCap: "round",
         lineJoin: "round",
       }).addTo(mapInstanceRef.current);
-
-      // Add subtle shadow effect
-      const shadowRoute = L.polyline(routeData.coordinates, {
-        color: "#1e40af",
-        weight: 7,
-        opacity: 0.3,
-        lineCap: "round",
-        lineJoin: "round",
-      }).addTo(mapInstanceRef.current);
-
-      // Move shadow behind main route
-      shadowRoute.bringToBack();
 
       // Fit map to show route
       const bounds = L.latLngBounds(routeData.coordinates);
