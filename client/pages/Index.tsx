@@ -359,7 +359,7 @@ export default function Index() {
           </div>
 
           {/* Desktop Left Sidebar - Controls */}
-          <div className="hidden lg:flex w-80 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 flex-col">
+          <div className="hidden lg:flex w-96 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 flex-col">
             {/* Instructions */}
             <div className="p-4 border-b border-gray-800">
               <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3">
