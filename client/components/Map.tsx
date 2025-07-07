@@ -373,83 +373,9 @@ export default function Map({
         className: "custom-popup",
       });
 
-      // Add click handler for place selection with routing
-      marker.on("click", async () => {
+      // Add click handler for place selection (no routing here)
+      marker.on("click", () => {
         onPlaceClick?.(place);
-
-        // Calculate and display route from ORIGINAL search center to selected place
-        const searchCenter = searchCenterRef.current;
-        console.log(
-          `Calculating route from search center [${searchCenter[0]}, ${searchCenter[1]}] to place [${place.lat}, ${place.lon}]`,
-        );
-
-        try {
-          const route = await calculateRoute(searchCenter, [
-            place.lat,
-            place.lon,
-          ]);
-
-          if (route && mapInstanceRef.current) {
-            // Remove existing route
-            if (routeLayerRef.current) {
-              routeLayerRef.current.remove();
-            }
-
-            // Add new route with improved styling
-            routeLayerRef.current = L.polyline(route.coordinates, {
-              color: "#3b82f6",
-              weight: 5,
-              opacity: 0.9,
-              dashArray: "12, 8",
-              lineCap: "round",
-              lineJoin: "round",
-            }).addTo(mapInstanceRef.current);
-
-            // Add subtle shadow effect
-            const shadowRoute = L.polyline(route.coordinates, {
-              color: "#1e40af",
-              weight: 7,
-              opacity: 0.3,
-              lineCap: "round",
-              lineJoin: "round",
-            }).addTo(mapInstanceRef.current);
-
-            // Move shadow behind main route
-            shadowRoute.bringToBack();
-
-            // Update popup with route information
-            const routeDistance =
-              route.distance < 1000
-                ? `${Math.round(route.distance)}m`
-                : `${(route.distance / 1000).toFixed(1)}km`;
-            const routeDuration = Math.round(route.duration / 60);
-
-            const updatedPopupContent = `
-              <div class="p-3 min-w-64 bg-gray-900 text-white rounded-lg">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-lg">${typeInfo.icon}</span>
-                  <h3 class="font-semibold text-sm">${place.name}</h3>
-                </div>
-                <div class="space-y-1 text-xs text-gray-300">
-                  <p><span class="text-gray-400">Type:</span> <span class="text-blue-300 font-medium">${typeInfo.type}</span></p>
-                  <p><span class="text-gray-400">Category:</span> ${PLACE_CATEGORIES[place.category].label}</p>
-                  <p><span class="text-gray-400">🚗 Driving Route:</span> <span class="text-green-300 font-medium">${routeDistance}</span> <span class="text-gray-500">(~${routeDuration} min from search center)</span></p>
-                  ${place.distance ? `<p><span class="text-gray-400">✈️ Straight Line:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"}</p>` : ""}
-                  ${place.details.operator ? `<p><span class="text-gray-400">Operator:</span> ${place.details.operator}</p>` : ""}
-                  ${place.details.emergency ? `<p class="text-red-400">⚠️ Emergency services available</p>` : ""}
-                </div>
-              </div>
-            `;
-
-            marker.setPopupContent(updatedPopupContent);
-
-            // Fit map to show both points and route
-            const bounds = L.latLngBounds([center, [place.lat, place.lon]]);
-            mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
-          }
-        } catch (error) {
-          console.error("Error calculating route:", error);
-        }
       });
 
       markersRef.current!.addLayer(marker);
