@@ -111,40 +111,42 @@ export default function Index() {
   // Handle map click
   const handleMapClick = useCallback(
     (lat: number, lon: number) => {
+      if (!checkNetworkStatus()) return;
       setMapCenter([lat, lon]);
       fetchPlaces(lat, lon, searchRadius);
     },
-    [fetchPlaces, searchRadius],
+    [fetchPlaces, searchRadius, checkNetworkStatus],
   );
 
   // Handle location found
   const handleLocationFound = useCallback(
     (lat: number, lon: number) => {
+      if (!checkNetworkStatus()) return;
       setMapCenter([lat, lon]);
       setMapZoom(14);
       fetchPlaces(lat, lon, searchRadius);
       toast.success("Location found! Searching for nearby services...");
     },
-    [fetchPlaces, searchRadius],
+    [fetchPlaces, searchRadius, checkNetworkStatus],
   );
 
   // Handle radius change
   const handleRadiusChange = useCallback(
     (newRadius: number) => {
       setSearchRadius(newRadius);
-      if (hasSearched) {
+      if (hasSearched && checkNetworkStatus()) {
         fetchPlaces(mapCenter[0], mapCenter[1], newRadius);
       }
     },
-    [fetchPlaces, mapCenter, hasSearched],
+    [fetchPlaces, mapCenter, hasSearched, checkNetworkStatus],
   );
 
   // Handle refresh search
   const handleRefreshSearch = useCallback(() => {
-    if (hasSearched) {
+    if (hasSearched && checkNetworkStatus()) {
       fetchPlaces(mapCenter[0], mapCenter[1], searchRadius);
     }
-  }, [fetchPlaces, mapCenter, searchRadius, hasSearched]);
+  }, [fetchPlaces, mapCenter, searchRadius, hasSearched, checkNetworkStatus]);
 
   // Handle place selection from results list
   const handlePlaceClick = useCallback((place: Place) => {
