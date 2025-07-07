@@ -99,7 +99,9 @@ export const handlePlacesSearch: RequestHandler = async (req, res) => {
 );
 out center;`;
 
-    console.log("Fetching places from OpenStreetMap...");
+    console.log(
+      `Fetching places from OpenStreetMap for lat: ${centerLat}, lon: ${centerLon}, radius: ${searchRadius}m`,
+    );
     const response = await fetch(OVERPASS_URL, {
       method: "POST",
       headers: {
@@ -109,6 +111,8 @@ out center;`;
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`OpenStreetMap API error ${response.status}:`, errorText);
       throw new Error(`OpenStreetMap API error: ${response.status}`);
     }
 
