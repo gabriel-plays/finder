@@ -226,7 +226,7 @@ export default function ResultsList({
     {} as Record<string, Record<string, Place[]>>,
   );
 
-  // State for collapsed categories and subcategories
+  // State for collapsed categories and subcategories (all collapsed by default)
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set(Object.keys(PLACE_CATEGORIES)),
   );
