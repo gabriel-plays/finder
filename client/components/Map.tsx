@@ -93,20 +93,37 @@ export default function Map({
       return;
     }
 
-    // Add dark theme tile layer
+    // Add dark theme tile layer with fallback
     try {
-      L.tileLayer(
+      const tileLayer = L.tileLayer(
         "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
         {
           maxZoom: 20,
           attribution:
             '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
         },
-      ).addTo(mapInstanceRef.current);
+      );
 
+      tileLayer.on("tileerror", () => {
+        console.warn("Dark tile layer failed, trying fallback...");
+        // Add fallback to OpenStreetMap
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 20,
+          attribution:
+            '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+        }).addTo(mapInstanceRef.current);
+      });
+
+      tileLayer.addTo(mapInstanceRef.current);
       console.log("Tile layer added successfully");
     } catch (error) {
       console.error("Error adding tile layer:", error);
+      // Fallback to basic OpenStreetMap
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 20,
+        attribution:
+          '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+      }).addTo(mapInstanceRef.current);
     }
 
     // Add zoom control to top right
