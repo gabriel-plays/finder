@@ -26,6 +26,12 @@ interface MapProps {
   selectedPlaceId?: string;
 }
 
+// Export the Map component with routing capabilities
+export interface MapRef {
+  showRoute: (place: Place) => Promise<void>;
+  clearRoute: () => void;
+}
+
 // Helper function to calculate route using OpenRouteService
 async function calculateRoute(start: [number, number], end: [number, number]) {
   try {
