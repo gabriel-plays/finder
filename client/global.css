@@ -159,7 +159,14 @@
   /* Ensure map container has proper height */
   .leaflet-container {
     height: 100% !important;
+    width: 100% !important;
     background: #0f172a !important;
+    min-height: 400px;
+  }
+
+  /* Ensure parent containers have height */
+  #root {
+    height: 100vh;
   }
 
   /* Zoom control styling */
