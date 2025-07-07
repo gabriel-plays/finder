@@ -99,8 +99,6 @@ const icons = {
   education: createCustomIcon("education"),
 };
 
-import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
-
 export default function Map({
   center,
   zoom,
