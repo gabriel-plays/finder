@@ -169,9 +169,25 @@ export default function Index() {
 
       {/* Main Content */}
       <div className="relative flex-1">
-        <div className="absolute inset-0 flex">
-          {/* Sidebar */}
-          <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 flex flex-col">
+        <div className="absolute inset-0 flex flex-col lg:flex-row">
+          {/* Mobile Controls - Top Panel */}
+          <div className="lg:hidden bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 p-3">
+            <div className="flex gap-3 overflow-x-auto">
+              <div className="flex-shrink-0">
+                <RadiusControl
+                  radius={searchRadius}
+                  onRadiusChange={handleRadiusChange}
+                  isLoading={isLoading}
+                />
+              </div>
+              <div className="flex-shrink-0">
+                <Legend placeCounts={placeCounts} />
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:flex w-80 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 flex-col">
             {/* Instructions */}
             <div className="p-4 border-b border-gray-800">
               <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3">
