@@ -221,33 +221,34 @@ export default function Map({
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        toast.dismiss(loadingToast);
         const { latitude, longitude } = position.coords;
         onLocationFound?.(latitude, longitude);
       },
       (error) => {
+        toast.dismiss(loadingToast);
         console.error("Geolocation error:", error);
         let errorMessage = "Unable to get your location. ";
 
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage +=
-              "Location access was denied. Please enable location permission and try again, or click on the map to search a location.";
+            errorMessage =
+              "Location access denied. Please enable location permission or click on the map to search.";
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage +=
-              "Location information is unavailable. Please try again or click on the map to search a location.";
+            errorMessage =
+              "Location unavailable. Please try again or click on the map to search.";
             break;
           case error.TIMEOUT:
-            errorMessage +=
-              "Location request timed out. Please try again or click on the map to search a location.";
+            errorMessage =
+              "Location request timed out. Please try again or click on the map.";
             break;
           default:
-            errorMessage +=
-              "An unknown error occurred. Please try clicking on the map to search a location.";
+            errorMessage = "Location error. Please click on the map to search.";
             break;
         }
 
-        alert(errorMessage);
+        toast.error(errorMessage);
       },
       {
         enableHighAccuracy: false,
