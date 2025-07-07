@@ -289,7 +289,7 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-950 text-white">
+    <div className="h-screen max-h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
       {/* Header */}
       <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-10 flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
