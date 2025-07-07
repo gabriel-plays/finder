@@ -157,6 +157,9 @@ export default function Index() {
 
   // Get user location on mount
   useEffect(() => {
+    // Check network first
+    if (!checkNetworkStatus()) return;
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -203,7 +206,7 @@ export default function Index() {
         "Geolocation not supported. Click anywhere on the map to search for services.",
       );
     }
-  }, [fetchPlaces, searchRadius]);
+  }, [fetchPlaces, searchRadius, checkNetworkStatus]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-950 text-white">
