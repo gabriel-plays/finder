@@ -94,14 +94,20 @@ export default function Map({
     }
 
     // Add dark theme tile layer
-    L.tileLayer(
-      "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
-      {
-        maxZoom: 20,
-        attribution:
-          '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-      },
-    ).addTo(mapInstanceRef.current);
+    try {
+      L.tileLayer(
+        "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+        {
+          maxZoom: 20,
+          attribution:
+            '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+        },
+      ).addTo(mapInstanceRef.current);
+
+      console.log("Tile layer added successfully");
+    } catch (error) {
+      console.error("Error adding tile layer:", error);
+    }
 
     // Add zoom control to top right
     L.control.zoom({ position: "topright" }).addTo(mapInstanceRef.current);
@@ -113,6 +119,8 @@ export default function Map({
     mapInstanceRef.current.on("click", (e) => {
       onMapClick(e.latlng.lat, e.latlng.lng);
     });
+
+    console.log("Map initialization completed");
 
     // Cleanup function
     return () => {
