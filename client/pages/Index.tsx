@@ -208,6 +208,25 @@ export default function Index() {
     }
   }, [fetchPlaces, searchRadius, checkNetworkStatus]);
 
+  // Listen for network status changes
+  useEffect(() => {
+    const handleOnline = () => {
+      toast.success("Connection restored! You can now search for services.");
+    };
+
+    const handleOffline = () => {
+      toast.error("Connection lost. Please check your internet connection.");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
   return (
     <div className="h-screen flex flex-col bg-gray-950 text-white">
       {/* Header */}
