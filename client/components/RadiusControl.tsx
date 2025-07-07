@@ -25,8 +25,8 @@ export default function RadiusControl({
     RADIUS_OPTIONS[2];
 
   return (
-    <div className="bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg p-4 shadow-xl">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg p-3 lg:p-4 shadow-xl min-w-48">
+      <div className="flex items-center gap-2 mb-2 lg:mb-3">
         <svg
           className="w-4 h-4 text-white"
           fill="none"
@@ -47,8 +47,8 @@ export default function RadiusControl({
         )}
       </div>
 
-      <div className="space-y-4">
-        <div className="px-2">
+      <div className="space-y-3 lg:space-y-4">
+        <div className="hidden lg:block px-2">
           <Slider
             value={[radius]}
             onValueChange={(values) => onRadiusChange(values[0])}
@@ -60,7 +60,7 @@ export default function RadiusControl({
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-3 lg:grid-cols-3 gap-1">
           {RADIUS_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -82,10 +82,12 @@ export default function RadiusControl({
         </div>
 
         <div className="text-center">
-          <span className="text-lg font-semibold text-white">
+          <span className="text-base lg:text-lg font-semibold text-white">
             {currentOption.label}
           </span>
-          <p className="text-xs text-gray-400 mt-1">Current radius</p>
+          <p className="text-xs text-gray-400 mt-1 hidden lg:block">
+            Current radius
+          </p>
         </div>
       </div>
     </div>
