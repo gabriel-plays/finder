@@ -149,9 +149,9 @@ export default function Index() {
   }, [fetchPlaces, searchRadius]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="h-screen flex flex-col bg-gray-950 text-white">
       {/* Header */}
-      <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-10">
+      <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-10 flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
