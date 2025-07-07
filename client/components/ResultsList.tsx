@@ -9,7 +9,11 @@ import {
 import { useState } from "react";
 
 // Helper function to get detailed place type description
-function getPlaceTypeInfo(place: Place): { type: string; icon: string; description: string } {
+function getPlaceTypeInfo(place: Place): {
+  type: string;
+  icon: string;
+  description: string;
+} {
   const { details, category } = place;
 
   if (category === "transport") {
@@ -17,41 +21,44 @@ function getPlaceTypeInfo(place: Place): { type: string; icon: string; descripti
       return {
         type: "Bus Stop",
         icon: "🚏",
-        description: "Public bus stop"
+        description: "Public bus stop",
       };
     }
     if (details.amenity === "bus_station") {
       return {
         type: "Bus Station",
         icon: "🚌",
-        description: "Major bus terminal"
+        description: "Major bus terminal",
       };
     }
     if (details.public_transport === "platform") {
       return {
         type: "Platform",
         icon: "🚉",
-        description: "Transport platform"
+        description: "Transport platform",
       };
     }
     if (details.public_transport === "stop_position") {
       return {
         type: "Stop Position",
         icon: "📍",
-        description: "Exact stopping point"
+        description: "Exact stopping point",
       };
     }
-    if (details.amenity === "railway" || place.name.toLowerCase().includes("station")) {
+    if (
+      details.amenity === "railway" ||
+      place.name.toLowerCase().includes("station")
+    ) {
       return {
         type: "Railway Station",
         icon: "🚂",
-        description: "Train/Underground station"
+        description: "Train/Underground station",
       };
     }
     return {
       type: "Transport Hub",
       icon: "🚇",
-      description: "Public transport facility"
+      description: "Public transport facility",
     };
   }
 
@@ -60,34 +67,36 @@ function getPlaceTypeInfo(place: Place): { type: string; icon: string; descripti
       return {
         type: "Hospital",
         icon: "🏥",
-        description: details.emergency ? "Emergency hospital" : "General hospital"
+        description: details.emergency
+          ? "Emergency hospital"
+          : "General hospital",
       };
     }
     if (details.amenity === "clinic") {
       return {
         type: "Clinic",
         icon: "🩺",
-        description: "Medical clinic"
+        description: "Medical clinic",
       };
     }
     if (details.amenity === "pharmacy") {
       return {
         type: "Pharmacy",
         icon: "💊",
-        description: "Pharmacy/Chemist"
+        description: "Pharmacy/Chemist",
       };
     }
     if (details.amenity === "doctors") {
       return {
         type: "Doctor's Office",
         icon: "👩‍⚕️",
-        description: "Medical practice"
+        description: "Medical practice",
       };
     }
     return {
       type: "Healthcare",
       icon: "⚕️",
-      description: "Healthcare facility"
+      description: "Healthcare facility",
     };
   }
 
@@ -96,41 +105,41 @@ function getPlaceTypeInfo(place: Place): { type: string; icon: string; descripti
       return {
         type: "University",
         icon: "🎓",
-        description: "Higher education"
+        description: "Higher education",
       };
     }
     if (details.amenity === "college") {
       return {
         type: "College",
         icon: "🏛️",
-        description: "Educational institution"
+        description: "Educational institution",
       };
     }
     if (details.amenity === "school") {
       return {
         type: "School",
         icon: "🏫",
-        description: "Primary/Secondary school"
+        description: "Primary/Secondary school",
       };
     }
     if (details.amenity === "kindergarten") {
       return {
         type: "Kindergarten",
         icon: "🧒",
-        description: "Early childhood education"
+        description: "Early childhood education",
       };
     }
     return {
       type: "Educational",
       icon: "📚",
-      description: "Educational facility"
+      description: "Educational facility",
     };
   }
 
   return {
     type: "Facility",
     icon: "📍",
-    description: "Public facility"
+    description: "Public facility",
   };
 }
 
@@ -201,26 +210,29 @@ export default function ResultsList({
   }
 
   // Group places by category and then by facility type
-  const groupedPlaces = places.reduce((acc, place) => {
-    const typeInfo = getPlaceTypeInfo(place);
+  const groupedPlaces = places.reduce(
+    (acc, place) => {
+      const typeInfo = getPlaceTypeInfo(place);
 
-    if (!acc[place.category]) {
-      acc[place.category] = {};
-    }
-    if (!acc[place.category][typeInfo.type]) {
-      acc[place.category][typeInfo.type] = [];
-    }
-    acc[place.category][typeInfo.type].push(place);
-    return acc;
-  }, {} as Record<string, Record<string, Place[]>>);
+      if (!acc[place.category]) {
+        acc[place.category] = {};
+      }
+      if (!acc[place.category][typeInfo.type]) {
+        acc[place.category][typeInfo.type] = [];
+      }
+      acc[place.category][typeInfo.type].push(place);
+      return acc;
+    },
+    {} as Record<string, Record<string, Place[]>>,
+  );
 
   // State for collapsed categories and subcategories
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set(Object.keys(PLACE_CATEGORIES)),
   );
-  const [collapsedSubCategories, setCollapsedSubCategories] = useState<Set<string>>(
-    new Set(),
-  );
+  const [collapsedSubCategories, setCollapsedSubCategories] = useState<
+    Set<string>
+  >(new Set());
 
   const toggleCategory = (category: string) => {
     const newCollapsed = new Set(collapsedCategories);
@@ -275,7 +287,10 @@ export default function ResultsList({
             const totalPlaces = Object.values(subCategories).flat().length;
 
             return (
-              <div key={category} className="border border-gray-700 rounded-lg bg-gray-800/30">
+              <div
+                key={category}
+                className="border border-gray-700 rounded-lg bg-gray-800/30"
+              >
                 <Collapsible
                   open={!isCollapsed}
                   onOpenChange={() => toggleCategory(category)}
@@ -314,160 +329,147 @@ export default function ResultsList({
 
                   <CollapsibleContent className="border-t border-gray-700">
                     <div className="p-3 space-y-3 max-h-[70vh] overflow-y-auto">
-                      {Object.entries(subCategories).map(([facilityType, facilityPlaces]) => {
-                        const subKey = `${category}-${facilityType}`;
-                        const isSubCollapsed = collapsedSubCategories.has(subKey);
-                        const typeInfo = getPlaceTypeInfo(facilityPlaces[0]);
+                      {Object.entries(subCategories).map(
+                        ([facilityType, facilityPlaces]) => {
+                          const subKey = `${category}-${facilityType}`;
+                          const isSubCollapsed =
+                            collapsedSubCategories.has(subKey);
+                          const typeInfo = getPlaceTypeInfo(facilityPlaces[0]);
 
-                        return (
-                          <div key={subKey} className="border border-gray-600/50 rounded-md bg-gray-800/20">
-                            <Collapsible
-                              open={!isSubCollapsed}
-                              onOpenChange={() => toggleSubCategory(subKey)}
+                          return (
+                            <div
+                              key={subKey}
+                              className="border border-gray-600/50 rounded-md bg-gray-800/20"
                             >
-                              <CollapsibleTrigger className="w-full">
-                                <div className="flex items-center justify-between p-2 hover:bg-gray-700/30 transition-colors rounded-t-md">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm">{typeInfo.icon}</span>
-                                    <h4 className="text-sm font-semibold text-gray-200">
-                                      {facilityType}
-                                    </h4>
-                                    <span className="text-xs bg-gray-600 text-gray-300 px-2 py-0.5 rounded">
-                                      {facilityPlaces.length}
-                                    </span>
+                              <Collapsible
+                                open={!isSubCollapsed}
+                                onOpenChange={() => toggleSubCategory(subKey)}
+                              >
+                                <CollapsibleTrigger className="w-full">
+                                  <div className="flex items-center justify-between p-2 hover:bg-gray-700/30 transition-colors rounded-t-md">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm">
+                                        {typeInfo.icon}
+                                      </span>
+                                      <h4 className="text-sm font-semibold text-gray-200">
+                                        {facilityType}
+                                      </h4>
+                                      <span className="text-xs bg-gray-600 text-gray-300 px-2 py-0.5 rounded">
+                                        {facilityPlaces.length}
+                                      </span>
+                                    </div>
+                                    <svg
+                                      className={`w-4 h-4 text-gray-500 transition-transform ${
+                                        isSubCollapsed
+                                          ? "rotate-0"
+                                          : "rotate-90"
+                                      }`}
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 5l7 7-7 7"
+                                      />
+                                    </svg>
                                   </div>
-                                  <svg
-                                    className={`w-4 h-4 text-gray-500 transition-transform ${
-                                      isSubCollapsed ? "rotate-0" : "rotate-90"
-                                    }`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M9 5l7 7-7 7"
-                                    />
-                                  </svg>
-                                </div>
-                              </CollapsibleTrigger>
+                                </CollapsibleTrigger>
 
-                              <CollapsibleContent className="border-t border-gray-600/30">
-                                <div className="p-2 space-y-2">
-                    {categoryPlaces.map((place) => {
-                      const typeInfo = getPlaceTypeInfo(place);
+                                <CollapsibleContent className="border-t border-gray-600/30">
+                                  <div className="p-2 space-y-2">
+                                    {facilityPlaces.map((place) => {
+                                      const placeTypeInfo =
+                                        getPlaceTypeInfo(place);
 
-                      return (
-                        <Card
-                          key={place.id}
-                          className={`cursor-pointer transition-all duration-200 border-gray-700 hover:border-gray-600 ${
-                            selectedPlaceId === place.id
-                              ? "bg-blue-900/30 border-blue-600"
-                              : "bg-gray-800/50 hover:bg-gray-800/80"
-                          }`}
-                          onClick={() => onPlaceClick(place)}
-                        >
-                          <CardContent className="p-3">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-white text-sm font-medium line-clamp-2 flex-1">
-                                {place.name}
-                              </h4>
-                              <span className="text-sm ml-2">
-                                {typeInfo.icon}
-                              </span>
+                                      return (
+                                        <Card
+                                          key={place.id}
+                                          className={`cursor-pointer transition-all duration-200 border-gray-600 hover:border-gray-500 ${
+                                            selectedPlaceId === place.id
+                                              ? "bg-blue-900/30 border-blue-500"
+                                              : "bg-gray-800/40 hover:bg-gray-700/50"
+                                          }`}
+                                          onClick={() => onPlaceClick(place)}
+                                        >
+                                          <CardContent className="p-3">
+                                            <div className="flex items-start justify-between mb-2">
+                                              <h5 className="text-white text-sm font-medium line-clamp-2 flex-1">
+                                                {place.name}
+                                              </h5>
+                                            </div>
+
+                                            <div className="space-y-1">
+                                              {place.distance && (
+                                                <div className="flex items-center gap-1">
+                                                  <svg
+                                                    className="w-3 h-3 text-gray-500"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                                    />
+                                                  </svg>
+                                                  <span className="text-xs text-gray-400">
+                                                    {place.distance < 1000
+                                                      ? `${place.distance}m away`
+                                                      : `${(place.distance / 1000).toFixed(1)}km away`}
+                                                  </span>
+                                                </div>
+                                              )}
+
+                                              {place.details.operator && (
+                                                <div className="flex items-center gap-1">
+                                                  <svg
+                                                    className="w-3 h-3 text-gray-500"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                                                    />
+                                                  </svg>
+                                                  <span className="text-xs text-blue-300 truncate">
+                                                    {place.details.operator}
+                                                  </span>
+                                                </div>
+                                              )}
+
+                                              {place.details.emergency && (
+                                                <Badge
+                                                  variant="destructive"
+                                                  className="text-xs bg-red-900/50 text-red-300"
+                                                >
+                                                  ⚠️ Emergency
+                                                </Badge>
+                                              )}
+                                            </div>
+                                          </CardContent>
+                                        </Card>
+                                      );
+                                    })}
+                                  </div>
+                                </CollapsibleContent>
+                              </Collapsible>
                             </div>
-
-                            <div className="space-y-2">
-                              {/* Place Type */}
-                              <div className="flex items-center gap-1">
-                                <svg
-                                  className="w-3 h-3 text-gray-500"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                                  />
-                                </svg>
-                                <span className="text-xs text-blue-300 font-medium">
-                                  {typeInfo.type}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  • {typeInfo.description}
-                                </span>
-                              </div>
-
-                              {place.distance && (
-                                <div className="flex items-center gap-1">
-                                  <svg
-                                    className="w-3 h-3 text-gray-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                    />
-                                  </svg>
-                                  <span className="text-xs text-gray-400">
-                                    {place.distance < 1000
-                                      ? `${place.distance}m away`
-                                      : `${(place.distance / 1000).toFixed(1)}km away`}
-                                  </span>
-                                </div>
-                              )}
-
-                              {place.details.operator && (
-                                <div className="flex items-center gap-1">
-                                  <svg
-                                    className="w-3 h-3 text-gray-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                                    />
-                                  </svg>
-                                  <span className="text-xs text-green-300 font-medium">
-                                    Operated by:
-                                  </span>
-                                  <span className="text-xs text-gray-400 truncate">
-                                    {place.details.operator}
-                                  </span>
-                                </div>
-                              )}
-
-                              <div className="flex items-center gap-2 mt-2">
-                                {place.details.emergency && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="text-xs bg-red-900/50 text-red-300"
-                                  >
-                                    ⚠️ Emergency
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                          );
+                        },
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             );
           })}
         </div>
