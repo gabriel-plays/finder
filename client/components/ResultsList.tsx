@@ -1,7 +1,6 @@
 import { Place, PLACE_CATEGORIES } from "@shared/places";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Collapsible,
   CollapsibleContent,
