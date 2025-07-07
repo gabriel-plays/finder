@@ -108,6 +108,17 @@ export default function Index() {
     [],
   );
 
+  // Check network status
+  const checkNetworkStatus = useCallback(() => {
+    if (!navigator.onLine) {
+      toast.error(
+        "You appear to be offline. Please check your internet connection.",
+      );
+      return false;
+    }
+    return true;
+  }, []);
+
   // Handle map click
   const handleMapClick = useCallback(
     (lat: number, lon: number) => {
