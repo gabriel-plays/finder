@@ -357,9 +357,61 @@ export default function Map({
         className: "custom-popup",
       });
 
-      // Add click handler for place selection
-      marker.on("click", () => {
+      // Add click handler for place selection with routing
+      marker.on("click", async () => {
         onPlaceClick?.(place);
+
+        // Calculate and display route
+        try {
+          const route = await calculateRoute(center, [place.lat, place.lon]);
+
+          if (route && mapInstanceRef.current) {
+            // Remove existing route
+            if (routeLayerRef.current) {
+              routeLayerRef.current.remove();
+            }
+
+            // Add new route
+            routeLayerRef.current = L.polyline(route.coordinates, {
+              color: "#3b82f6",
+              weight: 4,
+              opacity: 0.8,
+              dashArray: "10, 5",
+            }).addTo(mapInstanceRef.current);
+
+            // Update popup with route information
+            const routeDistance =
+              route.distance < 1000
+                ? `${Math.round(route.distance)}m`
+                : `${(route.distance / 1000).toFixed(1)}km`;
+            const routeDuration = Math.round(route.duration / 60);
+
+            const updatedPopupContent = `
+              <div class="p-3 min-w-64 bg-gray-900 text-white rounded-lg">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-lg">${typeInfo.icon}</span>
+                  <h3 class="font-semibold text-sm">${place.name}</h3>
+                </div>
+                <div class="space-y-1 text-xs text-gray-300">
+                  <p><span class="text-gray-400">Type:</span> <span class="text-blue-300 font-medium">${typeInfo.type}</span></p>
+                  <p><span class="text-gray-400">Category:</span> ${PLACE_CATEGORIES[place.category].label}</p>
+                  <p><span class="text-gray-400">Road Distance:</span> <span class="text-green-300 font-medium">${routeDistance}</span> <span class="text-gray-500">(~${routeDuration} min drive)</span></p>
+                  ${place.distance ? `<p><span class="text-gray-400">Straight Line:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"}</p>` : ""}
+                  ${place.details.operator ? `<p><span class="text-gray-400">Operator:</span> ${place.details.operator}</p>` : ""}
+                  ${place.details.emergency ? `<p class="text-red-400">⚠️ Emergency services available</p>` : ""}
+                </div>
+              </div>
+            `;
+
+            marker.setPopupContent(updatedPopupContent);
+
+            // Fit map to show both points and route
+            const bounds = L.latLngBounds([center, [place.lat, place.lon]]);
+            mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+          }
+        } catch (error) {
+          console.error("Error calculating route:", error);
+        }
       });
 
       markersRef.current!.addLayer(marker);
