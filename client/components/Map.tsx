@@ -198,9 +198,12 @@ export default function Map({
     }
   }, [center, zoom]);
 
-  // Update search radius circle
+  // Update search radius circle and track search center
   useEffect(() => {
     if (!mapInstanceRef.current) return;
+
+    // Update the search center reference to always track the original search location
+    searchCenterRef.current = center;
 
     // Remove existing circle
     if (circleRef.current) {
