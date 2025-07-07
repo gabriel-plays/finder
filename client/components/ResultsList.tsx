@@ -123,7 +123,7 @@ export default function ResultsList({
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto results-scroll-container">
         <div className="p-4 space-y-3">
           {Object.entries(groupedPlaces).map(([category, categoryPlaces]) => {
             const config =
