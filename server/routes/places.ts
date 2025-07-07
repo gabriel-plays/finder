@@ -82,27 +82,22 @@ export const handlePlacesSearch: RequestHandler = async (req, res) => {
     const searchRadius = parseInt(radius as string);
 
     // Build Overpass query for all categories
-    const allQueries = Object.values(PLACE_CATEGORIES).flatMap(
-      (cat) => cat.queries,
-    );
     const overpassQuery = `
-      [out:json][timeout:25];
-      (
-        ${allQueries
-          .map(
-            (query) =>
-              `node[${query}](around:${searchRadius},${centerLat},${centerLon});`,
-          )
-          .join("")}
-        ${allQueries
-          .map(
-            (query) =>
-              `way[${query}](around:${searchRadius},${centerLat},${centerLon});`,
-          )
-          .join("")}
-      );
-      out center;
-    `;
+[out:json][timeout:25];
+(
+  node["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](around:${searchRadius},${centerLat},${centerLon});
+  node["healthcare"](around:${searchRadius},${centerLat},${centerLon});
+  node["amenity"="bus_station"](around:${searchRadius},${centerLat},${centerLon});
+  node["highway"="bus_stop"](around:${searchRadius},${centerLat},${centerLon});
+  node["public_transport"~"^(stop_position|platform)$"](around:${searchRadius},${centerLat},${centerLon});
+  node["railway"="station"](around:${searchRadius},${centerLat},${centerLon});
+  node["amenity"~"^(school|university|college|kindergarten)$"](around:${searchRadius},${centerLat},${centerLon});
+  way["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](around:${searchRadius},${centerLat},${centerLon});
+  way["healthcare"](around:${searchRadius},${centerLat},${centerLon});
+  way["amenity"="bus_station"](around:${searchRadius},${centerLat},${centerLon});
+  way["amenity"~"^(school|university|college|kindergarten)$"](around:${searchRadius},${centerLat},${centerLon});
+);
+out center;`;
 
     console.log("Fetching places from OpenStreetMap...");
     const response = await fetch(OVERPASS_URL, {
