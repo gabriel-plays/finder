@@ -21,6 +21,11 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>();
+  const [routeData, setRouteData] = useState<{
+    coordinates: [number, number][];
+    distance: number;
+    duration: number;
+  } | null>(null);
 
   // Calculate place counts by category
   const placeCounts = places.reduce(
