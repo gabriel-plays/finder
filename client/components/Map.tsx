@@ -170,6 +170,12 @@ export default function Map({
 
     // Map click handler
     mapInstanceRef.current.on("click", (e) => {
+      // Clear existing route
+      if (routeLayerRef.current) {
+        routeLayerRef.current.remove();
+        routeLayerRef.current = null;
+      }
+
       onMapClick(e.latlng.lat, e.latlng.lng);
     });
 
