@@ -103,4 +103,80 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Force dark theme as default */
+  html {
+    @apply dark;
+  }
+
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+
+  /* Leaflet popup custom styles */
+  .leaflet-popup-content-wrapper {
+    border-radius: 8px !important;
+  }
+
+  .leaflet-popup-tip {
+    background: #111827 !important;
+  }
+
+  /* Custom map marker animations */
+  @keyframes marker-bounce {
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-10px);
+    }
+    60% {
+      transform: translateY(-5px);
+    }
+  }
+
+  .custom-div-icon {
+    animation: marker-bounce 1s ease-in-out;
+  }
+
+  /* Ensure map container has proper height */
+  .leaflet-container {
+    height: 100% !important;
+    background: #0f172a !important;
+  }
+
+  /* Zoom control styling */
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  .leaflet-control-zoom a {
+    background: #1f2937 !important;
+    color: #f9fafb !important;
+    border-color: #374151 !important;
+  }
+
+  .leaflet-control-zoom a:hover {
+    background: #374151 !important;
+  }
 }
