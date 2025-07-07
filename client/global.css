@@ -186,4 +186,28 @@
   .leaflet-control-zoom a:hover {
     background: #374151 !important;
   }
+
+  /* Results list scrolling */
+  .results-scroll-container {
+    scrollbar-width: thin;
+    scrollbar-color: #4b5563 #1f2937;
+  }
+
+  .results-scroll-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .results-scroll-container::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 4px;
+  }
+
+  .results-scroll-container::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+  }
+
+  .results-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
 }
