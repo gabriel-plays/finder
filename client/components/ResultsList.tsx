@@ -100,7 +100,7 @@ export default function ResultsList({
   };
 
   return (
-    <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-l border-gray-800 flex flex-col h-full max-h-full overflow-hidden">
+    <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-l border-gray-800 flex flex-col h-full max-h-full overflow-hidden relative">
       <div className="p-4 border-b border-gray-800 flex-shrink-0">
         <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
           <svg
@@ -123,10 +123,7 @@ export default function ResultsList({
         </p>
       </div>
 
-      <div
-        className="flex-1 overflow-y-auto results-scroll-container"
-        style={{ maxHeight: "calc(100vh - 200px)" }}
-      >
+      <div className="absolute top-20 bottom-0 left-0 right-0 overflow-y-auto results-scroll-container">
         <div className="p-4 space-y-3">
           {Object.entries(groupedPlaces).map(([category, categoryPlaces]) => {
             const config =
