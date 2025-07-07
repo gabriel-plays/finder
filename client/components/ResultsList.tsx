@@ -209,20 +209,30 @@ export default function ResultsList({
     );
   }
 
-  // Group places by category
+  // Group places by category and then by facility type
   const groupedPlaces = places.reduce(
     (acc, place) => {
-      if (!acc[place.category]) acc[place.category] = [];
-      acc[place.category].push(place);
+      const typeInfo = getPlaceTypeInfo(place);
+
+      if (!acc[place.category]) {
+        acc[place.category] = {};
+      }
+      if (!acc[place.category][typeInfo.type]) {
+        acc[place.category][typeInfo.type] = [];
+      }
+      acc[place.category][typeInfo.type].push(place);
       return acc;
     },
-    {} as Record<string, Place[]>,
+    {} as Record<string, Record<string, Place[]>>,
   );
 
-  // State for collapsed categories (all collapsed by default)
+  // State for collapsed categories and subcategories
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set(Object.keys(PLACE_CATEGORIES)),
   );
+  const [collapsedSubCategories, setCollapsedSubCategories] = useState<
+    Set<string>
+  >(new Set());
 
   const toggleCategory = (category: string) => {
     const newCollapsed = new Set(collapsedCategories);
@@ -232,6 +242,16 @@ export default function ResultsList({
       newCollapsed.add(category);
     }
     setCollapsedCategories(newCollapsed);
+  };
+
+  const toggleSubCategory = (key: string) => {
+    const newCollapsed = new Set(collapsedSubCategories);
+    if (newCollapsed.has(key)) {
+      newCollapsed.delete(key);
+    } else {
+      newCollapsed.add(key);
+    }
+    setCollapsedSubCategories(newCollapsed);
   };
 
   return (
