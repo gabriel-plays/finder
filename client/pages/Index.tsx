@@ -319,19 +319,45 @@ export default function Index() {
                   <h2 className="text-xl font-bold text-white mb-3">
                     Welcome to ServiceFinder
                   </h2>
-                  <p className="text-gray-300 text-sm mb-6">
-                    Discover essential services around you. Click anywhere on
-                    the map or use your current location to start exploring
-                    nearby healthcare, transport, and education facilities.
+                  <p className="text-gray-300 text-sm mb-4">
+                    Discover essential services around you. Get started by:
                   </p>
-                  <Button
-                    onClick={() =>
-                      handleLocationFound(mapCenter[0], mapCenter[1])
-                    }
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Get Started
-                  </Button>
+                  <div className="text-left text-gray-300 text-sm mb-6 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-400">📍</span>
+                      <span>Using your current location (recommended)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-400">🗺️</span>
+                      <span>Clicking anywhere on the map</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => {
+                        const mapElement =
+                          document.querySelector(".leaflet-container");
+                        if (mapElement) {
+                          const button = mapElement.querySelector(
+                            'button[title="Get my location"]',
+                          ) as HTMLButtonElement;
+                          if (button) button.click();
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 w-full"
+                    >
+                      📍 Use My Location
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        handleLocationFound(mapCenter[0], mapCenter[1])
+                      }
+                      variant="outline"
+                      className="border-gray-600 text-gray-300 hover:bg-gray-800 w-full"
+                    >
+                      🗺️ Explore London (Default)
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
