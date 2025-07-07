@@ -373,7 +373,7 @@ export default function Map({
       marker.on("click", async () => {
         onPlaceClick?.(place);
 
-        // Calculate and display route
+        // Calculate and display route from original search center to selected place
         try {
           const route = await calculateRoute(center, [place.lat, place.lon]);
 
