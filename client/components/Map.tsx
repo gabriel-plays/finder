@@ -178,10 +178,14 @@ export default function Map({
 
     // Map click handler
     mapInstanceRef.current.on("click", (e) => {
-      // Clear existing route
+      // Clear existing routes
       if (routeLayerRef.current) {
         routeLayerRef.current.remove();
         routeLayerRef.current = null;
+      }
+      if (shadowRouteRef.current) {
+        shadowRouteRef.current.remove();
+        shadowRouteRef.current = null;
       }
 
       onMapClick(e.latlng.lat, e.latlng.lng);
