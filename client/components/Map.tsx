@@ -110,6 +110,7 @@ export default function Map({
   const circleRef = useRef<L.Circle | null>(null);
   const centerMarkerRef = useRef<L.Marker | null>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
+  const shadowRouteRef = useRef<L.Polyline | null>(null);
   const searchCenterRef = useRef<[number, number]>(center); // Track the original search center
 
   // Initialize map
