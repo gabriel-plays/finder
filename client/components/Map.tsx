@@ -216,6 +216,9 @@ export default function Map({
       return;
     }
 
+    // Show loading toast
+    const loadingToast = toast.loading("Getting your location...");
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
