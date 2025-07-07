@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Place, PlacesResponse } from "@shared/places";
 import Map from "@/components/Map";
 import Legend from "@/components/Legend";
@@ -31,29 +31,53 @@ export default function Index() {
     {} as Record<string, number>,
   );
 
+  // Track current fetch request to prevent multiple concurrent requests
+  const currentFetchRef = useRef<AbortController | null>(null);
+
   // Fetch places from API with retry logic
   const fetchPlaces = useCallback(
     async (lat: number, lon: number, radius: number, retryCount = 0) => {
+      // Abort any previous request
+      if (currentFetchRef.current) {
+        currentFetchRef.current.abort();
+      }
+
       setIsLoading(true);
+
       try {
         console.log(
           `Fetching places for lat: ${lat}, lon: ${lon}, radius: ${radius}m`,
         );
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        // Validate input parameters
+        if (
+          !lat ||
+          !lon ||
+          !radius ||
+          isNaN(lat) ||
+          isNaN(lon) ||
+          isNaN(radius)
+        ) {
+          throw new Error("Invalid search parameters");
+        }
 
-        const response = await fetch(
-          `/api/places?lat=${lat}&lon=${lon}&radius=${radius}`,
-          {
-            signal: controller.signal,
-            headers: {
-              "Content-Type": "application/json",
-            },
+        const controller = new AbortController();
+        currentFetchRef.current = controller;
+
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const url = `/api/places?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&radius=${encodeURIComponent(radius)}`;
+        console.log(`Making request to: ${url}`);
+
+        const response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+        });
 
         clearTimeout(timeoutId);
+        currentFetchRef.current = null;
 
         if (!response.ok) {
           throw new Error(
@@ -62,18 +86,27 @@ export default function Index() {
         }
 
         const data: PlacesResponse = await response.json();
+        console.log(`Successfully fetched ${data.places.length} places`);
+
         setPlaces(data.places);
         setHasSearched(true);
-        setSelectedPlaceId(undefined); // Clear selection on new search
+        setSelectedPlaceId(undefined);
 
         toast.success(
           `Found ${data.places.length} nearby services within ${(radius / 1000).toFixed(1)}km`,
         );
       } catch (error) {
+        currentFetchRef.current = null;
         console.error("Error fetching places:", error);
 
+        // Don't retry if request was aborted
+        if ((error as Error).name === "AbortError") {
+          console.log("Request was aborted");
+          return;
+        }
+
         // Retry logic for network errors
-        if (retryCount < 2 && (error as Error).name !== "AbortError") {
+        if (retryCount < 2) {
           console.log(`Retrying... attempt ${retryCount + 1}`);
           toast.info(`Connection issue, retrying... (${retryCount + 1}/3)`);
           setTimeout(
@@ -81,20 +114,21 @@ export default function Index() {
               fetchPlaces(lat, lon, radius, retryCount + 1);
             },
             1000 * (retryCount + 1),
-          ); // Exponential backoff
+          );
           return;
         }
 
         // Handle different error types
         let errorMessage = "Failed to fetch nearby services. ";
-        if ((error as Error).name === "AbortError") {
-          errorMessage += "Request timed out. Please try again.";
-        } else if (
-          error instanceof TypeError &&
-          error.message.includes("fetch")
-        ) {
+        if (error instanceof TypeError && error.message.includes("fetch")) {
           errorMessage +=
             "Network connection issue. Please check your connection and try again.";
+        } else if (
+          error instanceof Error &&
+          error.message === "Invalid search parameters"
+        ) {
+          errorMessage +=
+            "Invalid search location. Please try clicking a different area.";
         } else {
           errorMessage += "Please try again in a moment.";
         }
