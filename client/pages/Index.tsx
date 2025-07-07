@@ -122,7 +122,23 @@ export default function Index() {
   // Handle map click
   const handleMapClick = useCallback(
     (lat: number, lon: number) => {
+      console.log(`Map clicked at: lat=${lat}, lon=${lon}`);
+
+      // Validate coordinates
+      if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+        console.error("Invalid coordinates:", { lat, lon });
+        toast.error("Invalid location coordinates. Please try again.");
+        return;
+      }
+
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        console.error("Coordinates out of range:", { lat, lon });
+        toast.error("Location coordinates are out of range. Please try again.");
+        return;
+      }
+
       if (!checkNetworkStatus()) return;
+
       setMapCenter([lat, lon]);
       fetchPlaces(lat, lon, searchRadius);
     },
