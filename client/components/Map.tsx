@@ -211,6 +211,12 @@ export default function Map({
       centerMarkerRef.current.remove();
     }
 
+    // Clear existing route when center changes
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+
     // Add search radius circle
     circleRef.current = L.circle(center, {
       radius: searchRadius,
