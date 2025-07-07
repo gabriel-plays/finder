@@ -96,6 +96,7 @@ export default function Index() {
         setPlaces(data.places);
         setHasSearched(true);
         setSelectedPlaceId(undefined);
+        setRouteData(null); // Clear any existing route
 
         toast.success(
           `Found ${data.places.length} nearby services within ${(radius / 1000).toFixed(1)}km`,
