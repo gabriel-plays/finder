@@ -506,7 +506,7 @@ export default function Index() {
           </div>
 
           {/* Desktop Right Sidebar - Results List */}
-          <div className="hidden lg:flex lg:h-full">
+          <div className="hidden lg:flex lg:h-full lg:max-h-full lg:overflow-hidden">
             <ResultsList
               places={places}
               onPlaceClick={handlePlaceClick}
