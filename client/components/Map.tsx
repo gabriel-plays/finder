@@ -24,6 +24,11 @@ interface MapProps {
   onLocationFound?: (lat: number, lon: number) => void;
   onPlaceClick?: (place: Place) => void;
   selectedPlaceId?: string;
+  routeData?: {
+    coordinates: [number, number][];
+    distance: number;
+    duration: number;
+  } | null;
 }
 
 // Export the Map component with routing capabilities
@@ -324,7 +329,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map({
           if (details.amenity === "hospital") return { type: "Hospital", icon: "🏥" };
           if (details.amenity === "clinic") return { type: "Clinic", icon: "🩺" };
           if (details.amenity === "pharmacy") return { type: "Pharmacy", icon: "💊" };
-          if (details.amenity === "doctors") return { type: "Doctor's Office", icon: "👩‍⚕️" };
+          if (details.amenity === "doctors") return { type: "Doctor's Office", icon: "👩‍��️" };
           return { type: "Healthcare", icon: "⚕️" };
         }
 
