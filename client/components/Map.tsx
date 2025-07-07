@@ -210,7 +210,9 @@ export default function Map({
   // Handle geolocation
   const handleMyLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser.");
+      alert(
+        "Geolocation is not supported by this browser. Please click on the map to search a location.",
+      );
       return;
     }
 
@@ -220,15 +222,34 @@ export default function Map({
         onLocationFound?.(latitude, longitude);
       },
       (error) => {
-        console.error("Error getting location:", error);
-        alert(
-          "Unable to get your location. Please try clicking on the map instead.",
-        );
+        console.error("Geolocation error:", error);
+        let errorMessage = "Unable to get your location. ";
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage +=
+              "Location access was denied. Please enable location permission and try again, or click on the map to search a location.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage +=
+              "Location information is unavailable. Please try again or click on the map to search a location.";
+            break;
+          case error.TIMEOUT:
+            errorMessage +=
+              "Location request timed out. Please try again or click on the map to search a location.";
+            break;
+          default:
+            errorMessage +=
+              "An unknown error occurred. Please try clicking on the map to search a location.";
+            break;
+        }
+
+        alert(errorMessage);
       },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 300000,
       },
     );
   };
