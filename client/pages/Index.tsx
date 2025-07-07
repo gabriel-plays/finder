@@ -209,12 +209,71 @@ export default function Index() {
     }
   }, [fetchPlaces, mapCenter, searchRadius, hasSearched, checkNetworkStatus]);
 
+  // Calculate route using OSRM
+  const calculateRoute = useCallback(
+    async (start: [number, number], end: [number, number]) => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          return {
+            coordinates: route.geometry.coordinates.map(
+              (coord: [number, number]) => [coord[1], coord[0]],
+            ),
+            distance: route.distance,
+            duration: route.duration,
+          };
+        }
+        return null;
+      } catch (error) {
+        console.error("Error calculating route:", error);
+        return null;
+      }
+    },
+    [],
+  );
+
   // Handle place selection from results list
-  const handlePlaceClick = useCallback((place: Place) => {
-    setSelectedPlaceId(place.id);
-    // Don't change map center - keep original search location as center
-    // The route will be drawn from search center to selected place
-  }, []);
+  const handlePlaceClick = useCallback(
+    async (place: Place) => {
+      setSelectedPlaceId(place.id);
+
+      // Calculate and show route from search center to selected place
+      try {
+        const route = await calculateRoute(mapCenter, [place.lat, place.lon]);
+        if (route) {
+          const routeDistance =
+            route.distance < 1000
+              ? `${Math.round(route.distance)}m`
+              : `${(route.distance / 1000).toFixed(1)}km`;
+          const routeDuration = Math.round(route.duration / 60);
+
+          toast.success(
+            `Route found: ${routeDistance} (${routeDuration} min drive)`,
+          );
+
+          // Store route for map to display
+          setRouteData({
+            coordinates: route.coordinates,
+            distance: route.distance,
+            duration: route.duration,
+          });
+        }
+      } catch (error) {
+        console.error("Error calculating route:", error);
+        toast.error("Could not calculate route");
+      }
+    },
+    [mapCenter, calculateRoute],
+  );
 
   // Get user location on mount
   useEffect(() => {
