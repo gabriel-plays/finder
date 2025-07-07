@@ -4,7 +4,9 @@ export interface Place {
   category: "healthcare" | "transport" | "education";
   lat: number;
   lon: number;
-  distance?: number;
+  distance?: number; // straight line distance in meters
+  roadDistance?: number; // road distance in meters
+  roadDuration?: number; // travel duration in seconds
   details: {
     operator?: string;
     emergency?: boolean;
