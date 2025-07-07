@@ -9,11 +9,7 @@ import {
 import { useState } from "react";
 
 // Helper function to get detailed place type description
-function getPlaceTypeInfo(place: Place): {
-  type: string;
-  icon: string;
-  description: string;
-} {
+function getPlaceTypeInfo(place: Place): { type: string; icon: string; description: string } {
   const { details, category } = place;
 
   if (category === "transport") {
@@ -21,44 +17,41 @@ function getPlaceTypeInfo(place: Place): {
       return {
         type: "Bus Stop",
         icon: "🚏",
-        description: "Public bus stop",
+        description: "Public bus stop"
       };
     }
     if (details.amenity === "bus_station") {
       return {
         type: "Bus Station",
         icon: "🚌",
-        description: "Major bus terminal",
+        description: "Major bus terminal"
       };
     }
     if (details.public_transport === "platform") {
       return {
         type: "Platform",
         icon: "🚉",
-        description: "Transport platform",
+        description: "Transport platform"
       };
     }
     if (details.public_transport === "stop_position") {
       return {
         type: "Stop Position",
         icon: "📍",
-        description: "Exact stopping point",
+        description: "Exact stopping point"
       };
     }
-    if (
-      details.amenity === "railway" ||
-      place.name.toLowerCase().includes("station")
-    ) {
+    if (details.amenity === "railway" || place.name.toLowerCase().includes("station")) {
       return {
         type: "Railway Station",
         icon: "🚂",
-        description: "Train/Underground station",
+        description: "Train/Underground station"
       };
     }
     return {
       type: "Transport Hub",
       icon: "🚇",
-      description: "Public transport facility",
+      description: "Public transport facility"
     };
   }
 
@@ -67,36 +60,34 @@ function getPlaceTypeInfo(place: Place): {
       return {
         type: "Hospital",
         icon: "🏥",
-        description: details.emergency
-          ? "Emergency hospital"
-          : "General hospital",
+        description: details.emergency ? "Emergency hospital" : "General hospital"
       };
     }
     if (details.amenity === "clinic") {
       return {
         type: "Clinic",
         icon: "🩺",
-        description: "Medical clinic",
+        description: "Medical clinic"
       };
     }
     if (details.amenity === "pharmacy") {
       return {
         type: "Pharmacy",
         icon: "💊",
-        description: "Pharmacy/Chemist",
+        description: "Pharmacy/Chemist"
       };
     }
     if (details.amenity === "doctors") {
       return {
         type: "Doctor's Office",
         icon: "👩‍⚕️",
-        description: "Medical practice",
+        description: "Medical practice"
       };
     }
     return {
       type: "Healthcare",
       icon: "⚕️",
-      description: "Healthcare facility",
+      description: "Healthcare facility"
     };
   }
 
@@ -105,41 +96,41 @@ function getPlaceTypeInfo(place: Place): {
       return {
         type: "University",
         icon: "🎓",
-        description: "Higher education",
+        description: "Higher education"
       };
     }
     if (details.amenity === "college") {
       return {
         type: "College",
         icon: "🏛️",
-        description: "Educational institution",
+        description: "Educational institution"
       };
     }
     if (details.amenity === "school") {
       return {
         type: "School",
         icon: "🏫",
-        description: "Primary/Secondary school",
+        description: "Primary/Secondary school"
       };
     }
     if (details.amenity === "kindergarten") {
       return {
         type: "Kindergarten",
         icon: "🧒",
-        description: "Early childhood education",
+        description: "Early childhood education"
       };
     }
     return {
       type: "Educational",
       icon: "📚",
-      description: "Educational facility",
+      description: "Educational facility"
     };
   }
 
   return {
     type: "Facility",
     icon: "📍",
-    description: "Public facility",
+    description: "Public facility"
   };
 }
 
@@ -210,29 +201,26 @@ export default function ResultsList({
   }
 
   // Group places by category and then by facility type
-  const groupedPlaces = places.reduce(
-    (acc, place) => {
-      const typeInfo = getPlaceTypeInfo(place);
+  const groupedPlaces = places.reduce((acc, place) => {
+    const typeInfo = getPlaceTypeInfo(place);
 
-      if (!acc[place.category]) {
-        acc[place.category] = {};
-      }
-      if (!acc[place.category][typeInfo.type]) {
-        acc[place.category][typeInfo.type] = [];
-      }
-      acc[place.category][typeInfo.type].push(place);
-      return acc;
-    },
-    {} as Record<string, Record<string, Place[]>>,
-  );
+    if (!acc[place.category]) {
+      acc[place.category] = {};
+    }
+    if (!acc[place.category][typeInfo.type]) {
+      acc[place.category][typeInfo.type] = [];
+    }
+    acc[place.category][typeInfo.type].push(place);
+    return acc;
+  }, {} as Record<string, Record<string, Place[]>>);
 
   // State for collapsed categories and subcategories
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set(Object.keys(PLACE_CATEGORIES)),
   );
-  const [collapsedSubCategories, setCollapsedSubCategories] = useState<
-    Set<string>
-  >(new Set());
+  const [collapsedSubCategories, setCollapsedSubCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   const toggleCategory = (category: string) => {
     const newCollapsed = new Set(collapsedCategories);
@@ -279,49 +267,95 @@ export default function ResultsList({
       </div>
 
       <div className="absolute top-20 bottom-0 left-0 right-0 overflow-y-auto results-scroll-container">
-        <div className="p-4 space-y-3">
-          {Object.entries(groupedPlaces).map(([category, categoryPlaces]) => {
+        <div className="p-4 space-y-4">
+          {Object.entries(groupedPlaces).map(([category, subCategories]) => {
             const config =
               PLACE_CATEGORIES[category as keyof typeof PLACE_CATEGORIES];
             const isCollapsed = collapsedCategories.has(category);
+            const totalPlaces = Object.values(subCategories).flat().length;
 
             return (
-              <Collapsible
-                key={category}
-                open={!isCollapsed}
-                onOpenChange={() => toggleCategory(category)}
-              >
-                <CollapsibleTrigger className="w-full">
-                  <div className="flex items-center justify-between p-2 rounded-md hover:bg-gray-800/50 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: config.color }}
-                      ></div>
-                      <h3 className="text-sm font-semibold text-gray-300">
-                        {config.label} ({categoryPlaces.length})
-                      </h3>
+              <div key={category} className="border border-gray-700 rounded-lg bg-gray-800/30">
+                <Collapsible
+                  open={!isCollapsed}
+                  onOpenChange={() => toggleCategory(category)}
+                >
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center justify-between p-3 hover:bg-gray-800/50 transition-colors rounded-t-lg">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: config.color }}
+                        ></div>
+                        <h3 className="text-base font-bold text-white">
+                          {config.label}
+                        </h3>
+                        <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded-full">
+                          {totalPlaces}
+                        </span>
+                      </div>
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform ${
+                          isCollapsed ? "rotate-0" : "rotate-90"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
                     </div>
-                    <svg
-                      className={`w-4 h-4 text-gray-400 transition-transform ${
-                        isCollapsed ? "rotate-0" : "rotate-90"
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                </CollapsibleTrigger>
+                  </CollapsibleTrigger>
 
-                <CollapsibleContent className="mt-2 max-h-96 overflow-y-auto">
-                  <div className="space-y-2 ml-5">
+                  <CollapsibleContent className="border-t border-gray-700">
+                    <div className="p-3 space-y-3 max-h-[70vh] overflow-y-auto">
+                      {Object.entries(subCategories).map(([facilityType, facilityPlaces]) => {
+                        const subKey = `${category}-${facilityType}`;
+                        const isSubCollapsed = collapsedSubCategories.has(subKey);
+                        const typeInfo = getPlaceTypeInfo(facilityPlaces[0]);
+
+                        return (
+                          <div key={subKey} className="border border-gray-600/50 rounded-md bg-gray-800/20">
+                            <Collapsible
+                              open={!isSubCollapsed}
+                              onOpenChange={() => toggleSubCategory(subKey)}
+                            >
+                              <CollapsibleTrigger className="w-full">
+                                <div className="flex items-center justify-between p-2 hover:bg-gray-700/30 transition-colors rounded-t-md">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm">{typeInfo.icon}</span>
+                                    <h4 className="text-sm font-semibold text-gray-200">
+                                      {facilityType}
+                                    </h4>
+                                    <span className="text-xs bg-gray-600 text-gray-300 px-2 py-0.5 rounded">
+                                      {facilityPlaces.length}
+                                    </span>
+                                  </div>
+                                  <svg
+                                    className={`w-4 h-4 text-gray-500 transition-transform ${
+                                      isSubCollapsed ? "rotate-0" : "rotate-90"
+                                    }`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </div>
+                              </CollapsibleTrigger>
+
+                              <CollapsibleContent className="border-t border-gray-600/30">
+                                <div className="p-2 space-y-2">
                     {categoryPlaces.map((place) => {
                       const typeInfo = getPlaceTypeInfo(place);
 
