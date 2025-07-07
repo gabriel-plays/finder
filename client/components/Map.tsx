@@ -226,10 +226,14 @@ export default function Map({
       centerMarkerRef.current.remove();
     }
 
-    // Clear existing route when center changes
+    // Clear existing routes when center changes
     if (routeLayerRef.current) {
       routeLayerRef.current.remove();
       routeLayerRef.current = null;
+    }
+    if (shadowRouteRef.current) {
+      shadowRouteRef.current.remove();
+      shadowRouteRef.current = null;
     }
 
     // Add search radius circle
@@ -354,7 +358,7 @@ export default function Map({
             return { type: "School", icon: "🏫" };
           if (details.amenity === "kindergarten")
             return { type: "Kindergarten", icon: "🧒" };
-          return { type: "Educational", icon: "📚" };
+          return { type: "Educational", icon: "��" };
         }
 
         return { type: "Facility", icon: "📍" };
