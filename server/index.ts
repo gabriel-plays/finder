@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
+import { handlePlacesSearch } from "./routes/places";
 
 export function createServer() {
   const app = express();
@@ -16,6 +17,7 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+  app.get("/api/places", handlePlacesSearch);
 
   return app;
 }
