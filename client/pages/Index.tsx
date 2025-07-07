@@ -200,8 +200,8 @@ export default function Index() {
       </header>
 
       {/* Main Content */}
-      <div className="relative flex-1">
-        <div className="absolute inset-0 flex flex-col lg:flex-row">
+      <div className="flex-1 flex flex-col lg:flex-row relative">
+        <div className="h-full flex-1 flex flex-col lg:flex-row">
           {/* Mobile Controls - Top Panel */}
           <div className="lg:hidden bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 p-3">
             <div className="flex gap-3 overflow-x-auto">
