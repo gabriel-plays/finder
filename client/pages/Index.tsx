@@ -133,13 +133,18 @@ export default function Index() {
               </div>
               <div>
                 <h1 className="text-lg font-bold">ServiceFinder</h1>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 hidden sm:block">
                   Find essential services nearby
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
+              {hasSearched && (
+                <div className="hidden sm:block text-xs text-gray-400">
+                  {places.length} services found
+                </div>
+              )}
               <Button
                 onClick={handleRefreshSearch}
                 disabled={!hasSearched || isLoading}
@@ -160,7 +165,7 @@ export default function Index() {
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
-                Refresh
+                <span className="hidden sm:inline ml-1">Refresh</span>
               </Button>
             </div>
           </div>
