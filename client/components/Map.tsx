@@ -96,11 +96,12 @@ export default function Map({
     // Add dark theme tile layer with fallback
     try {
       const tileLayer = L.tileLayer(
-        "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         {
           maxZoom: 20,
           attribution:
-            '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: "abcd",
         },
       );
 
@@ -115,7 +116,7 @@ export default function Map({
       });
 
       tileLayer.addTo(mapInstanceRef.current);
-      console.log("Tile layer added successfully");
+      console.log("Dark tile layer added successfully");
     } catch (error) {
       console.error("Error adding tile layer:", error);
       // Fallback to basic OpenStreetMap
