@@ -100,7 +100,7 @@ export default function ResultsList({
   };
 
   return (
-    <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-l border-gray-800 flex flex-col h-full">
+    <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-l border-gray-800 flex flex-col h-full max-h-full overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex-shrink-0">
         <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
           <svg
