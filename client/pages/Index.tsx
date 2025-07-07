@@ -512,6 +512,7 @@ export default function Index() {
               onLocationFound={handleLocationFound}
               onPlaceClick={handlePlaceClick}
               selectedPlaceId={selectedPlaceId}
+              routeData={routeData}
             />
 
             <LoadingOverlay isVisible={isLoading} />
