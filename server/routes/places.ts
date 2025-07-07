@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { PlacesResponse, Place, PLACE_CATEGORIES } from "@shared/places";
+import { PlacesResponse, Place, PLACE_CATEGORIES } from "../../shared/places";
 
 // OpenStreetMap Overpass API endpoint
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
