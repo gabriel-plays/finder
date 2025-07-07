@@ -8,6 +8,141 @@ import {
 } from "@/components/ui/collapsible";
 import { useState } from "react";
 
+// Helper function to get detailed place type description
+function getPlaceTypeInfo(place: Place): {
+  type: string;
+  icon: string;
+  description: string;
+} {
+  const { details, category } = place;
+
+  if (category === "transport") {
+    if (details.highway === "bus_stop") {
+      return {
+        type: "Bus Stop",
+        icon: "🚏",
+        description: "Public bus stop",
+      };
+    }
+    if (details.amenity === "bus_station") {
+      return {
+        type: "Bus Station",
+        icon: "🚌",
+        description: "Major bus terminal",
+      };
+    }
+    if (details.public_transport === "platform") {
+      return {
+        type: "Platform",
+        icon: "🚉",
+        description: "Transport platform",
+      };
+    }
+    if (details.public_transport === "stop_position") {
+      return {
+        type: "Stop Position",
+        icon: "📍",
+        description: "Exact stopping point",
+      };
+    }
+    if (
+      details.amenity === "railway" ||
+      place.name.toLowerCase().includes("station")
+    ) {
+      return {
+        type: "Railway Station",
+        icon: "🚂",
+        description: "Train/Underground station",
+      };
+    }
+    return {
+      type: "Transport Hub",
+      icon: "🚇",
+      description: "Public transport facility",
+    };
+  }
+
+  if (category === "healthcare") {
+    if (details.amenity === "hospital") {
+      return {
+        type: "Hospital",
+        icon: "🏥",
+        description: details.emergency
+          ? "Emergency hospital"
+          : "General hospital",
+      };
+    }
+    if (details.amenity === "clinic") {
+      return {
+        type: "Clinic",
+        icon: "🩺",
+        description: "Medical clinic",
+      };
+    }
+    if (details.amenity === "pharmacy") {
+      return {
+        type: "Pharmacy",
+        icon: "💊",
+        description: "Pharmacy/Chemist",
+      };
+    }
+    if (details.amenity === "doctors") {
+      return {
+        type: "Doctor's Office",
+        icon: "👩‍⚕️",
+        description: "Medical practice",
+      };
+    }
+    return {
+      type: "Healthcare",
+      icon: "⚕️",
+      description: "Healthcare facility",
+    };
+  }
+
+  if (category === "education") {
+    if (details.amenity === "university") {
+      return {
+        type: "University",
+        icon: "🎓",
+        description: "Higher education",
+      };
+    }
+    if (details.amenity === "college") {
+      return {
+        type: "College",
+        icon: "🏛️",
+        description: "Educational institution",
+      };
+    }
+    if (details.amenity === "school") {
+      return {
+        type: "School",
+        icon: "🏫",
+        description: "Primary/Secondary school",
+      };
+    }
+    if (details.amenity === "kindergarten") {
+      return {
+        type: "Kindergarten",
+        icon: "🧒",
+        description: "Early childhood education",
+      };
+    }
+    return {
+      type: "Educational",
+      icon: "📚",
+      description: "Educational facility",
+    };
+  }
+
+  return {
+    type: "Facility",
+    icon: "📍",
+    description: "Public facility",
+  };
+}
+
 interface ResultsListProps {
   places: Place[];
   onPlaceClick: (place: Place) => void;
