@@ -58,13 +58,105 @@ function categorizePlace(
 // Helper function to clean and validate place names
 function cleanPlaceName(name: string): boolean {
   if (!name) return false;
-  const lowerName = name.toLowerCase();
+  const lowerName = name.toLowerCase().trim();
+
   // Filter out test entries and invalid names
-  const invalidPatterns = ["test", "example", "xxx", "temp", "123"];
-  return (
-    !invalidPatterns.some((pattern) => lowerName.includes(pattern)) &&
-    name.length > 1
-  );
+  const invalidPatterns = [
+    "test",
+    "example",
+    "xxx",
+    "temp",
+    "123",
+    "unnamed",
+    "no name",
+    "construction",
+    "under construction",
+    "closed",
+    "demolished",
+  ];
+
+  // Filter out generic/unhelpful names
+  const genericPatterns = ["building", "structure", "facility", "site"];
+
+  // Must have reasonable length
+  if (name.length < 2 || name.length > 100) return false;
+
+  // Check for invalid patterns
+  if (invalidPatterns.some((pattern) => lowerName.includes(pattern)))
+    return false;
+
+  // Filter out purely generic names
+  if (genericPatterns.some((pattern) => lowerName === pattern)) return false;
+
+  // Filter out names that are just numbers or symbols
+  if (/^[\d\W]+$/.test(name)) return false;
+
+  return true;
+}
+
+// Helper function to check if two places are duplicates
+function isDuplicate(place1: Place, place2: Place, threshold = 50): boolean {
+  // Same exact name and very close location
+  if (place1.name.toLowerCase() === place2.name.toLowerCase()) {
+    const distance = calculateDistance(
+      place1.lat,
+      place1.lon,
+      place2.lat,
+      place2.lon,
+    );
+    return distance < threshold;
+  }
+
+  // Very similar names (basic similarity check)
+  const name1 = place1.name.toLowerCase().replace(/[^\w\s]/g, "");
+  const name2 = place2.name.toLowerCase().replace(/[^\w\s]/g, "");
+
+  if (name1.includes(name2) || name2.includes(name1)) {
+    const distance = calculateDistance(
+      place1.lat,
+      place1.lon,
+      place2.lat,
+      place2.lon,
+    );
+    return distance < threshold;
+  }
+
+  return false;
+}
+
+// Helper function to score place quality
+function scorePlaceQuality(place: Place): number {
+  let score = 0;
+
+  // Prefer places with names over unnamed ones
+  if (place.name && place.name !== "Unknown") score += 20;
+
+  // Prefer places with operators (usually more official)
+  if (place.details.operator) score += 15;
+
+  // Emergency services are highly important
+  if (place.details.emergency) score += 25;
+
+  // Prefer specific amenity types over generic ones
+  if (place.details.amenity) {
+    const specificAmenities = [
+      "hospital",
+      "clinic",
+      "pharmacy",
+      "school",
+      "university",
+    ];
+    if (specificAmenities.includes(place.details.amenity)) score += 10;
+  }
+
+  // Healthcare facilities get priority
+  if (place.category === "healthcare") score += 5;
+
+  // Penalize very generic names
+  const genericNames = ["pharmacy", "hospital", "school", "bus stop"];
+  if (genericNames.includes(place.name.toLowerCase())) score -= 5;
+
+  return score;
 }
 
 export const handlePlacesSearch: RequestHandler = async (req, res) => {
@@ -117,25 +209,21 @@ out center;`;
     }
 
     const data = await response.json();
-    const places: Place[] = [];
-    const categoryLimits = { healthcare: 15, transport: 15, education: 15 };
-    const categoryCounts = { healthcare: 0, transport: 0, education: 0 };
+    const rawPlaces: Place[] = [];
 
+    // First pass: collect all valid places
     for (const element of data.elements) {
-      // Skip if we've reached the limit for any category
       const category = categorizePlace(element.tags || {});
-      if (!category || categoryCounts[category] >= categoryLimits[category]) {
-        continue;
-      }
+      if (!category) continue;
 
       const lat = element.lat || element.center?.lat;
       const lon = element.lon || element.center?.lon;
-
       if (!lat || !lon) continue;
 
       const name =
         element.tags?.name ||
         element.tags?.operator ||
+        element.tags?.brand ||
         element.tags?.amenity ||
         "Unknown";
 
@@ -143,7 +231,6 @@ out center;`;
       if (!cleanPlaceName(name)) continue;
 
       const distance = calculateDistance(centerLat, centerLon, lat, lon);
-
       // Skip if outside radius (with small buffer for rounding errors)
       if (distance > searchRadius + 100) continue;
 
@@ -164,12 +251,45 @@ out center;`;
         },
       };
 
-      places.push(place);
-      categoryCounts[category]++;
+      rawPlaces.push(place);
     }
 
-    // Sort by distance
-    places.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+    // Second pass: remove duplicates
+    const uniquePlaces: Place[] = [];
+    for (const place of rawPlaces) {
+      const isDupe = uniquePlaces.some((existing) =>
+        isDuplicate(place, existing),
+      );
+      if (!isDupe) {
+        uniquePlaces.push(place);
+      }
+    }
+
+    // Third pass: score and sort by quality, then distance
+    const scoredPlaces = uniquePlaces.map((place) => ({
+      ...place,
+      qualityScore: scorePlaceQuality(place),
+    }));
+
+    // Sort by quality score first, then distance
+    scoredPlaces.sort((a, b) => {
+      if (b.qualityScore !== a.qualityScore) {
+        return b.qualityScore - a.qualityScore;
+      }
+      return (a.distance || 0) - (b.distance || 0);
+    });
+
+    // Fourth pass: apply category limits to top-quality results
+    const places: Place[] = [];
+    const categoryLimits = { healthcare: 12, transport: 10, education: 8 };
+    const categoryCounts = { healthcare: 0, transport: 0, education: 0 };
+
+    for (const place of scoredPlaces) {
+      if (categoryCounts[place.category] < categoryLimits[place.category]) {
+        places.push(place);
+        categoryCounts[place.category]++;
+      }
+    }
 
     const result: PlacesResponse = {
       places,
