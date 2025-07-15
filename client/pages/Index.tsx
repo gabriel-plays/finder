@@ -21,6 +21,11 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>();
+  const [routeData, setRouteData] = useState<{
+    coordinates: [number, number][];
+    distance: number;
+    duration: number;
+  } | null>(null);
 
   // Calculate place counts by category
   const placeCounts = places.reduce(
@@ -91,6 +96,7 @@ export default function Index() {
         setPlaces(data.places);
         setHasSearched(true);
         setSelectedPlaceId(undefined);
+        setRouteData(null); // Clear any existing route
 
         toast.success(
           `Found ${data.places.length} nearby services within ${(radius / 1000).toFixed(1)}km`,
@@ -209,12 +215,67 @@ export default function Index() {
     }
   }, [fetchPlaces, mapCenter, searchRadius, hasSearched, checkNetworkStatus]);
 
+  // Calculate route using OSRM
+  const calculateRoute = useCallback(
+    async (start: [number, number], end: [number, number]) => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          return {
+            coordinates: route.geometry.coordinates.map(
+              (coord: [number, number]) => [coord[1], coord[0]],
+            ),
+            distance: route.distance,
+            duration: route.duration,
+          };
+        }
+        return null;
+      } catch (error) {
+        console.error("Error calculating route:", error);
+        return null;
+      }
+    },
+    [],
+  );
+
   // Handle place selection from results list
-  const handlePlaceClick = useCallback((place: Place) => {
-    setSelectedPlaceId(place.id);
-    setMapCenter([place.lat, place.lon]);
-    setMapZoom(16); // Zoom in when selecting a place
-  }, []);
+  const handlePlaceClick = useCallback(
+    async (place: Place) => {
+      setSelectedPlaceId(place.id);
+
+      // Calculate and show route from search center to selected place
+      try {
+        const route = await calculateRoute(mapCenter, [place.lat, place.lon]);
+        if (route) {
+          const routeDistance =
+            route.distance < 1000
+              ? `${Math.round(route.distance)}m`
+              : `${(route.distance / 1000).toFixed(1)}km`;
+          const routeDuration = Math.round(route.duration / 60);
+
+          // Store route for map to display
+          setRouteData({
+            coordinates: route.coordinates,
+            distance: route.distance,
+            duration: route.duration,
+          });
+        }
+      } catch (error) {
+        console.error("Error calculating route:", error);
+        toast.error("Could not calculate route");
+      }
+    },
+    [mapCenter, calculateRoute],
+  );
 
   // Get user location on mount
   useEffect(() => {
@@ -289,7 +350,7 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-950 text-white">
+    <div className="h-screen max-h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
       {/* Header */}
       <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-10 flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
@@ -340,8 +401,8 @@ export default function Index() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row relative">
-        <div className="h-full flex-1 flex flex-col lg:flex-row">
+      <div className="flex-1 flex flex-col lg:flex-row relative min-h-0">
+        <div className="h-full flex-1 flex flex-col lg:flex-row min-h-0">
           {/* Mobile Controls - Top Panel */}
           <div className="lg:hidden bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 p-3">
             <div className="flex gap-3 overflow-x-auto">
@@ -359,7 +420,7 @@ export default function Index() {
           </div>
 
           {/* Desktop Left Sidebar - Controls */}
-          <div className="hidden lg:flex w-80 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 flex-col">
+          <div className="hidden lg:flex w-96 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 flex-col">
             {/* Instructions */}
             <div className="p-4 border-b border-gray-800">
               <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3">
@@ -447,6 +508,7 @@ export default function Index() {
               onLocationFound={handleLocationFound}
               onPlaceClick={handlePlaceClick}
               selectedPlaceId={selectedPlaceId}
+              routeData={routeData}
             />
 
             <LoadingOverlay isVisible={isLoading} />
@@ -506,7 +568,7 @@ export default function Index() {
           </div>
 
           {/* Desktop Right Sidebar - Results List */}
-          <div className="hidden lg:flex lg:h-full">
+          <div className="hidden lg:flex lg:h-full lg:max-h-full lg:overflow-hidden">
             <ResultsList
               places={places}
               onPlaceClick={handlePlaceClick}

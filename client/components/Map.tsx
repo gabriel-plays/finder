@@ -24,6 +24,41 @@ interface MapProps {
   onLocationFound?: (lat: number, lon: number) => void;
   onPlaceClick?: (place: Place) => void;
   selectedPlaceId?: string;
+  routeData?: {
+    coordinates: [number, number][];
+    distance: number;
+    duration: number;
+  } | null;
+}
+
+// Helper function to calculate route using OpenRouteService
+async function calculateRoute(start: [number, number], end: [number, number]) {
+  try {
+    // Using public OSRM demo server (no API key needed)
+    const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.routes && data.routes.length > 0) {
+      const route = data.routes[0];
+      return {
+        coordinates: route.geometry.coordinates.map(
+          (coord: [number, number]) => [coord[1], coord[0]],
+        ), // Flip lat/lon
+        distance: route.distance, // Distance in meters
+        duration: route.duration, // Duration in seconds
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error calculating route:", error);
+    return null;
+  }
 }
 
 // Create custom icons for each category
@@ -67,12 +102,16 @@ export default function Map({
   onLocationFound,
   onPlaceClick,
   selectedPlaceId,
+  routeData,
 }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
   const circleRef = useRef<L.Circle | null>(null);
   const centerMarkerRef = useRef<L.Marker | null>(null);
+  const routeLayerRef = useRef<L.Polyline | null>(null);
+  const shadowRouteRef = useRef<L.Polyline | null>(null);
+  const searchCenterRef = useRef<[number, number]>(center); // Track the original search center
 
   // Initialize map
   useEffect(() => {
@@ -139,6 +178,16 @@ export default function Map({
 
     // Map click handler
     mapInstanceRef.current.on("click", (e) => {
+      // Clear existing routes
+      if (routeLayerRef.current) {
+        routeLayerRef.current.remove();
+        routeLayerRef.current = null;
+      }
+      if (shadowRouteRef.current) {
+        shadowRouteRef.current.remove();
+        shadowRouteRef.current = null;
+      }
+
       onMapClick(e.latlng.lat, e.latlng.lng);
     });
 
@@ -160,9 +209,12 @@ export default function Map({
     }
   }, [center, zoom]);
 
-  // Update search radius circle
+  // Update search radius circle and track search center
   useEffect(() => {
     if (!mapInstanceRef.current) return;
+
+    // Update the search center reference to always track the original search location
+    searchCenterRef.current = center;
 
     // Remove existing circle
     if (circleRef.current) {
@@ -172,6 +224,16 @@ export default function Map({
     // Remove existing center marker
     if (centerMarkerRef.current) {
       centerMarkerRef.current.remove();
+    }
+
+    // Clear existing routes when center changes
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+    if (shadowRouteRef.current) {
+      shadowRouteRef.current.remove();
+      shadowRouteRef.current = null;
     }
 
     // Add search radius circle
@@ -223,6 +285,8 @@ export default function Map({
     places.forEach((place) => {
       // Create icon with selection styling
       const isSelected = selectedPlaceId === place.id;
+      const hasSelection = selectedPlaceId !== undefined;
+      const isDimmed = hasSelection && !isSelected;
       const config = PLACE_CATEGORIES[place.category];
 
       const markerIcon = L.divIcon({
@@ -230,40 +294,93 @@ export default function Map({
         html: `
           <div style="
             background-color: ${config.color};
-            width: ${isSelected ? "32px" : "24px"};
-            height: ${isSelected ? "32px" : "24px"};
+            width: ${isSelected ? "36px" : "24px"};
+            height: ${isSelected ? "36px" : "24px"};
             border-radius: 50%;
-            border: ${isSelected ? "3px solid #60a5fa" : "2px solid white"};
+            border: ${isSelected ? "4px solid #60a5fa" : "2px solid white"};
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: ${isSelected ? "16px" : "12px"};
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            font-size: ${isSelected ? "18px" : "12px"};
+            box-shadow: ${isSelected ? "0 4px 12px rgba(96, 165, 250, 0.6)" : "0 2px 6px rgba(0,0,0,0.4)"};
             cursor: pointer;
-            transform: ${isSelected ? "scale(1.1)" : "scale(1)"};
-            transition: all 0.2s ease;
+            transform: ${isSelected ? "scale(1.2)" : "scale(1)"};
+            transition: all 0.3s ease;
+            opacity: ${isDimmed ? "0.4" : "1"};
+            z-index: ${isSelected ? "1000" : "500"};
           ">
             ${config.icon}
           </div>
         `,
-        iconSize: [isSelected ? 32 : 24, isSelected ? 32 : 24],
-        iconAnchor: [isSelected ? 16 : 12, isSelected ? 16 : 12],
+        iconSize: [isSelected ? 36 : 24, isSelected ? 36 : 24],
+        iconAnchor: [isSelected ? 18 : 12, isSelected ? 18 : 12],
       });
 
       const marker = L.marker([place.lat, place.lon], {
         icon: markerIcon,
       });
 
+      // Get place type info for popup
+      const getPlaceTypeInfo = (place: Place) => {
+        const { details, category } = place;
+
+        if (category === "transport") {
+          if (details.highway === "bus_stop")
+            return { type: "Bus Stop", icon: "🚏" };
+          if (details.amenity === "bus_station")
+            return { type: "Bus Station", icon: "🚌" };
+          if (details.public_transport === "platform")
+            return { type: "Platform", icon: "🚉" };
+          if (details.public_transport === "stop_position")
+            return { type: "Stop Position", icon: "📍" };
+          if (
+            details.amenity === "railway" ||
+            place.name.toLowerCase().includes("station")
+          )
+            return { type: "Railway Station", icon: "🚂" };
+          return { type: "Transport Hub", icon: "🚇" };
+        }
+
+        if (category === "healthcare") {
+          if (details.amenity === "hospital")
+            return { type: "Hospital", icon: "🏥" };
+          if (details.amenity === "clinic")
+            return { type: "Clinic", icon: "🩺" };
+          if (details.amenity === "pharmacy")
+            return { type: "Pharmacy", icon: "💊" };
+          if (details.amenity === "doctors")
+            return { type: "Doctor's Office", icon: "👩‍��️" };
+          return { type: "Healthcare", icon: "⚕️" };
+        }
+
+        if (category === "education") {
+          if (details.amenity === "university")
+            return { type: "University", icon: "🎓" };
+          if (details.amenity === "college")
+            return { type: "College", icon: "🏛️" };
+          if (details.amenity === "school")
+            return { type: "School", icon: "🏫" };
+          if (details.amenity === "kindergarten")
+            return { type: "Kindergarten", icon: "🧒" };
+          return { type: "Educational", icon: "📚" };
+        }
+
+        return { type: "Facility", icon: "📍" };
+      };
+
+      const typeInfo = getPlaceTypeInfo(place);
+
       // Create popup content
       const popupContent = `
         <div class="p-3 min-w-64 bg-gray-900 text-white rounded-lg">
           <div class="flex items-center gap-2 mb-2">
-            <span class="text-lg">${config.icon}</span>
+            <span class="text-lg">${typeInfo.icon}</span>
             <h3 class="font-semibold text-sm">${place.name}</h3>
           </div>
           <div class="space-y-1 text-xs text-gray-300">
+            <p><span class="text-gray-400">Type:</span> <span class="text-blue-300 font-medium">${typeInfo.type}</span></p>
             <p><span class="text-gray-400">Category:</span> ${PLACE_CATEGORIES[place.category].label}</p>
-            ${place.distance ? `<p><span class="text-gray-400">Distance:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"}</p>` : ""}
+            ${place.distance ? `<p><span class="text-gray-400">Distance:</span> ${place.distance < 1000 ? place.distance + "m" : (place.distance / 1000).toFixed(1) + "km"} <span class="text-gray-500">(as the crow flies)</span></p>` : ""}
             ${place.details.operator ? `<p><span class="text-gray-400">Operator:</span> ${place.details.operator}</p>` : ""}
             ${place.details.emergency ? `<p class="text-red-400">⚠️ Emergency services available</p>` : ""}
           </div>
@@ -275,14 +392,55 @@ export default function Map({
         className: "custom-popup",
       });
 
-      // Add click handler for place selection
+      // Add click handler for place selection (no routing here)
       marker.on("click", () => {
         onPlaceClick?.(place);
       });
 
       markersRef.current!.addLayer(marker);
     });
-  }, [places]);
+  }, [places, selectedPlaceId]);
+
+  // Handle route data changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing routes completely
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+    if (shadowRouteRef.current) {
+      shadowRouteRef.current.remove();
+      shadowRouteRef.current = null;
+    }
+
+    // Add new route if provided
+    if (routeData && routeData.coordinates.length > 0) {
+      // Add shadow effect first
+      shadowRouteRef.current = L.polyline(routeData.coordinates, {
+        color: "#1e40af",
+        weight: 7,
+        opacity: 0.3,
+        lineCap: "round",
+        lineJoin: "round",
+      }).addTo(mapInstanceRef.current);
+
+      // Add main route on top
+      routeLayerRef.current = L.polyline(routeData.coordinates, {
+        color: "#3b82f6",
+        weight: 5,
+        opacity: 0.9,
+        dashArray: "12, 8",
+        lineCap: "round",
+        lineJoin: "round",
+      }).addTo(mapInstanceRef.current);
+
+      // Fit map to show route
+      const bounds = L.latLngBounds(routeData.coordinates);
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [routeData]);
 
   // Handle geolocation
   const handleMyLocation = () => {
